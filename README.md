@@ -9,6 +9,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+
+
+
+
 This Vignette will walk you through the usage of the Hypergate R package.
 
 ## Package installation
@@ -25,9 +29,9 @@ library(devtools)
 install_github(repo = "ebecht/hypergate")
 ```
 
+
 ```r
 library(hypergate)
-library(flowCore)
 ```
 
 ## Data loading
@@ -102,14 +106,14 @@ clustering = Rphenograph(Samusik_01_subset$xp_src[, Samusik_01_subset$regular_ch
 ```
 
 ```
-##   Finding nearest neighbors...DONE ~ 0.148 s
-##   Compute jaccard coefficient between nearest-neighbor sets...DONE ~ 0.442 s
-##   Build undirected graph from the weighted links...DONE ~ 0.206 s
-##   Run louvain clustering on the graph ...DONE ~ 0.128 s
+##   Finding nearest neighbors...DONE ~ 0.133 s
+##   Compute jaccard coefficient between nearest-neighbor sets...DONE ~ 0.436 s
+##   Build undirected graph from the weighted links...DONE ~ 0.189 s
+##   Run louvain clustering on the graph ...DONE ~ 0.106 s
 ```
 
 ```
-## Run Rphenograph DONE, totally takes 0.923999999882653s.
+## Run Rphenograph DONE, totally takes 0.863999999999578s.
 ```
 
 ```
@@ -146,7 +150,7 @@ hg_output = hypergate.stepwise.fullcycles(xp = Samusik_01_subset$xp_src[,
 
 ### Gating datapoints
 
-The following function allows to subset a gene expression matrix given a return from *Hypergate*. The new matrix needs to have the same column names as the original matrix.
+The following function allows to subset an expression matrix given a return from *Hypergate*. The new matrix needs to have the same column names as the original matrix.
 
 
 ```r
@@ -166,7 +170,7 @@ table(ifelse(gating_predicted, "Gated-in", "Gated-out"), ifelse(gate_vector ==
 |Gated-in  |                116|      0|
 |Gated-out |                 10|   1874|
 
-Another option, which offers more low-level control, is to examine for each datapoint wether they pass the threshold for each parameter. The function to obtain such a boolean matrix is ```boolmat```. Here our gating strategy specifies *SiglecF+cKit-Ly6C-*. We would thus obtain a 3-columns x 2000 (the number of events) rows
+Another option, which offers more low-level control, is to examine for each datapoint whether they pass the threshold for each parameter. The function to obtain such a boolean matrix is ```boolmat```. Here our gating strategy specifies *SiglecF+cKit-Ly6C-*. We would thus obtain a 3-columns x 2000 (the number of events) rows
 
 
 ```r
@@ -195,13 +199,13 @@ head(bm)
 
 The following function will plot the output of Hypergate. Arguments are
 
-1. ```gate```, an object returned by Hypergate
+1. ```gate``` an object returned by Hypergate
 
-2. ```xp```, an expression matrix whose columns are named similarly as the ones used to create the ```gate``` object
+2. ```xp``` an expression matrix whose columns are named similarly as the ones used to create the ```gate``` object
 
 3. ```gate_vector``` and ```level``` to specify which events are "of interest"
 
-4. ```highlight``` : a color that will be used to highlight the events of interest 
+4. ```highlight``` a color that will be used to highlight the events of interest 
 
 
 ```r
@@ -212,7 +216,7 @@ plot_gating_strategy(gate = hg_output, xp = Samusik_01_subset$xp_src[,
 
 ![Gating strategy](figure/unnamed-chunk-16-1.png)![Gating strategy](figure/unnamed-chunk-16-2.png)
 
-Another important point to consider is how the Fbeta-score increases with each added channel. This gives an idea of how many channels are required to reach a close-to-optimal gating strategy.
+Another important point to consider is how the F$\beta$-score increases with each added channel. This gives an idea of how many channels are required to reach a close-to-optimal gating strategy.
 
 This will identify at which steps the parameters were first activated and optimized:
 
