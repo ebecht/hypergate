@@ -9,16 +9,6 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-
-
-
-
-
-```r
-library(hypergate)
-library(flowCore)
-```
-
 This Vignette will walk you through the usage of the Hypergate R package.
 
 ## Package installation
@@ -33,6 +23,11 @@ Installing the package from github:
 install.packages("devtools")
 library(devtools)
 install_github(repo = "ebecht/hypergate")
+```
+
+```r
+library(hypergate)
+library(flowCore)
 ```
 
 ## Data loading
