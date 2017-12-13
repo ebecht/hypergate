@@ -1021,3 +1021,71 @@ makeTransparent = function(colors, alpha=255) {
     rgb(red=col[1,], green=col[2,], blue=col[3,], alpha=alpha, maxColorValue=255)
   })
 }
+
+
+
+#' Colors a biplot according to a vector with discrete values
+#'
+#' @param matrix a two columns matrix
+#' @param discrete_vector a vector of size nrow(matrix)
+#' @param ... passed to plot
+#' @export
+
+color_biplot_by_discrete<-function(matrix,discrete_vector,...,bty="l",pch=16,cex=0.5,colors=NULL,alpha=100){
+    levels=unique(discrete_vector)
+    if(missing(colors)){
+        colors=setNames(makeTransparent(c("black",rainbow(length(levels)-1)),alpha=alpha),levels)
+    }
+    plot(matrix,bty=bty,pch=pch,cex=cex,col=colors[as.character(discrete_vector)],...)
+}
+
+#' Wrapper to locator that plots segments on the fly
+#' @export
+
+en.locator<-function(){
+  input=TRUE
+  x=vector()
+  y=vector()
+  while(!is.null(input)){
+    input=locator(1)
+    x=c(x,input$x)
+    y=c(y,input$y)
+
+    if(length(x)>1){
+      segments(x0=x[length(x)-1],x1=x[length(x)],y0=y[length(y)-1],y1=y[length(y)],lty=2)
+    }
+  }
+  segments(x0=x[1],x1=x[length(x)],y0=y[1],y1=y[length(y)],lty=2)
+  list(x=x,y=y)
+}
+
+#' Remove self intersection in polygons
+#' @param poly a polygon (list with two components x and y which are equal-length numerical vectors)
+#' @return A polygon without overlapping edges and new vertices corresponding to non-inner points of intersection
+#' @export
+
+polygon.clean<-function(poly){
+  require(rgeos)
+  require(sp)
+  coords=cbind(poly$x,poly$y)
+  coords=rbind(coords,coords[1,])
+  s = SpatialLines(list(Lines(list(Line(coords)),ID=1)))
+  s_outer = gUnaryUnion(gPolygonize(gNode(s)))
+  x=s_outer@polygons[[1]]@Polygons[[1]]@coords[,"x"]
+  y=s_outer@polygons[[1]]@Polygons[[1]]@coords[,"y"]
+  return(list(x=x[-length(x)],y=y[-length(y)]))
+}
+
+#' Updates a gate vector
+#'
+#' @param xp A two colums matrix
+#' @param polygon.list A list of lists with two components x and y of equal lenghts and numeric values
+#' @param gate_vector a vector of length nrow(xp) with integer values
+#' @param value The number that will be assigned to gate_vector, corresponding to points that lie in the polygon
+#' @return The updated gate_vector
+#' @export
+
+update_gate=function(xp,polygon,gate_vector=rep(0,nrow(xp)),value=1){
+  gate_vector[point.in.polygon(xp[,1],xp[,2],polygon$x,polygon$y)!=0]=value
+  gate_vector
+}
