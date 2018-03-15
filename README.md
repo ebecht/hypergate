@@ -20,6 +20,8 @@ Installing dependencies:
 
 ```r
 install.packages(c("sp", "polyclip", "rgeos"))
+source("https://bioconductor.org/biocLite.R")
+biocLite("flowCore")
 ```
 Installing the package from github:
 
