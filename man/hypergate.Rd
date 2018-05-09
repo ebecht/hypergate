@@ -23,3 +23,11 @@ hypergate(xp, gate_vector, level, delta_add = 0, beta = 1,
 \description{
 Finds a hyperrectangle gating around a population of interest
 }
+\examples{
+xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
+gate_vector=Samusik_01_subset$labels
+hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
+}
+\seealso{
+\code{\link{channels_contribution}} for ranking parameters within the output, \code{\link{reoptimize_strategy}} for reoptimizing a output on a subset of the markers, \code{\link{plot_gating_strategy}} for plotting an output, \code{\link{subset_matrix_hg}} to apply the output to another input matrix, \code{\link{boolmat}} to obtain a boolean matrix stating which events are filtered out because of which markers
+}

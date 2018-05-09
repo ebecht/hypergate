@@ -4,8 +4,7 @@
 \alias{gate_from_biplot}
 \title{gate_from_biplot}
 \usage{
-gate_from_biplot(matrix, x_axis, y_axis, ..., bty = "l", pch = 16,
-  cex = 0.5, sample = NULL)
+gate_from_biplot(matrix=Samusik_01_subset$tsne,x_axis="tSNE1",y_axis="tSNE2")
 }
 \arguments{
 \item{matrix}{A matrix}

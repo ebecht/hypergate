@@ -82,6 +82,12 @@ fill_FNTN_matrix<-function(xp_FN,xp_TN,B_FN,B_TN,par){
 #' @param highlight color of the positive population when plotting
 #' @param path Where png files will be produced
 #' @param ... passed to png
+#' @examples
+#' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
+#' gate_vector=Samusik_01_subset$labels
+#' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
+#' par(mfrow=c(1,ceiling(length(hg$active_channels)/2)))
+#' plot_gating_strategy(gate=hg,xp=xp,gate_vector=gate_vector,level=23,highlight="red")
 #' @export
 
 plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path="./",...){
@@ -208,6 +214,14 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
 #' @description Returns a boolean vector whose TRUE elements correspond to events inside the hyperrectangle
 #' @param gate a return from hypergate
 #' @param xp Expression matrix used for gate
+#' @examples
+#' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
+#' gate_vector=Samusik_01_subset$labels
+#' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
+#' gating_state=subset_matrix_hg(hg,xp)
+#' gating_state=ifelse(gating_state,"Gated in","Gated out")
+#' target=ifelse(gate_vector==23,"Target events","Others")
+#' table(gating_state,target)
 #' @export
 subset_matrix_hg<-function(gate,xp){
 		if(length(gate$active_channels)>0){
@@ -656,7 +670,13 @@ coreloop<-function(par,hg.env=hg.env$hg.env){
 #' @param delta_add If the increase in F after an optimization loop is lower than delta_add, the optimization will stop (may save computation time)
 #' @param beta Purity / Yield trade-off
 #' @param verbose Boolean. Whether to print information about the optimization status.
+#' @examples
+#' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
+#' gate_vector=Samusik_01_subset$labels
+#' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
+#' @seealso \code{\link{channels_contribution}} for ranking parameters within the output, \code{\link{reoptimize_strategy}} for reoptimizing a output on a subset of the markers, \code{\link{plot_gating_strategy}} for plotting an output, \code{\link{subset_matrix_hg}} to apply the output to another input matrix, \code{\link{boolmat}} to obtain a boolean matrix stating which events are filtered out because of which markers
 #' @export
+
 hypergate<-function(xp,gate_vector,level,delta_add=0,beta=1,verbose=FALSE){
     beta2=beta^2
     if(is.null(rownames(xp))){
@@ -746,6 +766,7 @@ hypergate<-function(xp,gate_vector,level,delta_add=0,beta=1,verbose=FALSE){
                 pop=which(pars.history.rank[,tail(active_channels,1)]!=pars.history.rank[1,tail(active_channels,1)])[1] ##Flag history from when we added this last channel...
                 pars.history.rank=pars.history.rank[1:(pop-1),] ##... and remove it
                 f_res=f_res[1:(pop-1)]
+                active_channels=active_channels[-length(active_channels)]
             }
             break
         }
@@ -767,6 +788,12 @@ hypergate<-function(xp,gate_vector,level,delta_add=0,beta=1,verbose=FALSE){
 #' @param gate_vector Categorical vector of length nrow(xp)
 #' @param level A level of gate_vector that identifies the population of interest
 #' @param beta, should be the same as for the hypergate object
+#' @examples
+#' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
+#' gate_vector=Samusik_01_subset$labels
+#' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0)
+#' contribs=channels_contributions(gate=hg,xp=xp,gate_vector=gate_vector,level=23,beta=1)
+#' contribs
 #' @export
 channels_contributions<-function(gate,xp,gate_vector,level,beta=1){
     truce=gate_vector==level
@@ -781,7 +808,11 @@ channels_contributions<-function(gate,xp,gate_vector,level,beta=1){
 #' @title boolmat
 #' @description Convert an expression matrix and a gating strategy to a boolean matrix (whether each event is gated out by each channel)
 #' @param gate A return from hypergate
-#' @param xp Expression matrix as in the hypergate call
+#' @param xp Expression matrix as in the hypergate callxp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
+#' @examples
+#' gate_vector=Samusik_01_subset$labels
+#' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
+#' head(boolmat(hg,xp))
 #' @export
 boolmat<-function(gate,xp){
     chans=gate$active_channels
@@ -811,6 +842,13 @@ boolmat<-function(gate,xp){
 #' @param level Level of gate_vector identifying the population of interest
 #' @param beta Yield / purity trade-off
 #' @param verbose Whether to print information about optimization status
+#' @examples
+#' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
+#' gate_vector=Samusik_01_subset$labels
+#' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0)
+#' contribs=channels_contributions(gate=hg,xp=xp,gate_vector=gate_vector,level=23,beta=1)
+#' significant_channels=names(contribs)[contribs>=0.01]
+#' hg_reoptimized=reoptimize_strategy(gate=hg,channels_subset=significant_channels,xp=xp,gate_vector=gate_vector,level=23,beta=1)
 #' @export
 reoptimize_strategy<-function(gate,channels_subset,xp,gate_vector,level,beta=1,verbose=FALSE){
     beta2=beta^2
@@ -956,7 +994,16 @@ reoptimize_strategy<-function(gate,channels_subset,xp,gate_vector,level,beta=1,v
 #' @description Compute a F_beta score comparing two boolean vectors
 #' @param pred boolean vector of predicted values
 #' @param truth boolean vector of true values
-#' @param beta Weighting of yield as compared to precision. Increase beta so that the optimization favors yield, or decrease to favor purity. 
+#' @param beta Weighting of yield as compared to precision. Increase beta so that the optimization favors yield, or decrease to favor purity.
+#' @examples
+#' truth=c(rep(TRUE,40),rep(FALSE,60))
+#' pred=rep(c(TRUE,FALSE),50)
+#' table(pred,truth) ##40% purity, 50% yield
+#' #' F_beta(pred=pred,truth=truth,beta=2) ##Closer to yield
+#' F_beta(pred=pred,truth=truth,beta=1.5) ##Closer to yield
+#' F_beta(pred=pred,truth=truth,beta=1) ##Harmonic mean
+#' F_beta(pred=pred,truth=truth,beta=0.75) ##Closer to purity
+#' F_beta(pred=pred,truth=truth,beta=0.5) ##Closer to purity
 #' @export
 
 F_beta=function(pred,truth,beta=1){
@@ -985,6 +1032,7 @@ F_beta=function(pred,truth,beta=1){
 #' @param cex passed to plot
 #' @param pch passed to plot
 #' @param ... passed to plot
+#' @usage gate_from_biplot(matrix=Samusik_01_subset$tsne,x_axis="tSNE1",y_axis="tSNE2")
 #' @export
 #' @return A named vector of length nrow(matrix) and names rownames(matrix). Ungated events are set to NA
 #' @details Data will be displayed as a bi-plot according to user-specified x_axis and y_axis arguments, then a call to locator() is made. The user can draw a polygon around parts of the plot that need gating. When done, 'right-click' or 'escape' (depending on the IDE) escapes locator() and closes the polygon. Then the user can press "n" to draw another polygon (that will define a new population), "c" to cancell and draw the last polygon again, or "s" to exit. When exiting, events that do not fall within any polygon are assigned NA, the others are assigned an integer value corresponding to the last polygon they lie into.
@@ -1061,6 +1109,9 @@ gate_from_biplot<-function(matrix,x_axis,y_axis,...,bty="l",pch=16,cex=0.5,sampl
 #' @param cex passed to plot
 #' @param bty passed to plot
 #' @param ... passed to plot
+#' @examples
+#' colors=setNames(colorRampPalette(palette())(length(unique(sort(Samusik_01_subset$labels)))),sort(unique(Samusik_01_subset$labels)))
+#' color_biplot_by_discrete(matrix=Samusik_01_subset$tsne,discrete_vector=Samusik_01_subset$labels,colors=colors)
 #' @export
 
 color_biplot_by_discrete<-function(matrix,discrete_vector,...,bty="l",pch=16,cex=0.5,colors=NULL){

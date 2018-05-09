@@ -14,3 +14,12 @@ subset_matrix_hg(gate, xp)
 \description{
 Returns a boolean vector whose TRUE elements correspond to events inside the hyperrectangle
 }
+\examples{
+xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
+gate_vector=Samusik_01_subset$labels
+hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
+gating_state=subset_matrix_hg(hg,xp)
+gating_state=ifelse(gating_state,"Gated in","Gated out")
+target=ifelse(gate_vector==23,"Target events","Others")
+table(gating_state,target)
+}
