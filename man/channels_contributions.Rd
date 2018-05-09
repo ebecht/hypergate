@@ -21,6 +21,7 @@ channels_contributions(gate, xp, gate_vector, level, beta = 1)
 Gives scores for the contribution of individual channels to a gating strategy
 }
 \examples{
+data(Samusik_01_subset)
 xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
 gate_vector=Samusik_01_subset$labels
 hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0)

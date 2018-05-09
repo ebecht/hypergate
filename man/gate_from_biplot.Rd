@@ -4,7 +4,8 @@
 \alias{gate_from_biplot}
 \title{gate_from_biplot}
 \usage{
-gate_from_biplot(matrix=Samusik_01_subset$tsne,x_axis="tSNE1",y_axis="tSNE2")
+gate_from_biplot(matrix, x_axis, y_axis, ..., bty = "l", pch = 16,
+  cex = 0.5, sample = NULL)
 }
 \arguments{
 \item{matrix}{A matrix}
@@ -31,4 +32,10 @@ From a biplot let the user interactively draw polygons to create a "Gate" vector
 }
 \details{
 Data will be displayed as a bi-plot according to user-specified x_axis and y_axis arguments, then a call to locator() is made. The user can draw a polygon around parts of the plot that need gating. When done, 'right-click' or 'escape' (depending on the IDE) escapes locator() and closes the polygon. Then the user can press "n" to draw another polygon (that will define a new population), "c" to cancell and draw the last polygon again, or "s" to exit. When exiting, events that do not fall within any polygon are assigned NA, the others are assigned an integer value corresponding to the last polygon they lie into.
+}
+\examples{
+if(interactive()){
+    ##See the details section to see how this function works
+    gate_from_biplot(matrix=Samusik_01_subset$tsne,x_axis="tSNE1",y_axis="tSNE2")
+}
 }

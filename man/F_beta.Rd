@@ -17,6 +17,7 @@ F_beta(pred, truth, beta = 1)
 Compute a F_beta score comparing two boolean vectors
 }
 \examples{
+data(Samusik_01_subset)
 truth=c(rep(TRUE,40),rep(FALSE,60))
 pred=rep(c(TRUE,FALSE),50)
 table(pred,truth) ##40\% purity, 50\% yield

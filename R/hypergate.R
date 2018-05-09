@@ -83,6 +83,7 @@ fill_FNTN_matrix<-function(xp_FN,xp_TN,B_FN,B_TN,par){
 #' @param path Where png files will be produced
 #' @param ... passed to png
 #' @examples
+#' data(Samusik_01_subset)
 #' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
 #' gate_vector=Samusik_01_subset$labels
 #' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
@@ -215,6 +216,7 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
 #' @param gate a return from hypergate
 #' @param xp Expression matrix used for gate
 #' @examples
+#' data(Samusik_01_subset)
 #' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
 #' gate_vector=Samusik_01_subset$labels
 #' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
@@ -671,10 +673,11 @@ coreloop<-function(par,hg.env=hg.env$hg.env){
 #' @param beta Purity / Yield trade-off
 #' @param verbose Boolean. Whether to print information about the optimization status.
 #' @examples
+#' data(Samusik_01_subset)
 #' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
 #' gate_vector=Samusik_01_subset$labels
 #' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
-#' @seealso \code{\link{channels_contribution}} for ranking parameters within the output, \code{\link{reoptimize_strategy}} for reoptimizing a output on a subset of the markers, \code{\link{plot_gating_strategy}} for plotting an output, \code{\link{subset_matrix_hg}} to apply the output to another input matrix, \code{\link{boolmat}} to obtain a boolean matrix stating which events are filtered out because of which markers
+#' @seealso \code{\link{channels_contributions}} for ranking parameters within the output, \code{\link{reoptimize_strategy}} for reoptimizing a output on a subset of the markers, \code{\link{plot_gating_strategy}} for plotting an output, \code{\link{subset_matrix_hg}} to apply the output to another input matrix, \code{\link{boolmat}} to obtain a boolean matrix stating which events are filtered out because of which markers
 #' @export
 
 hypergate<-function(xp,gate_vector,level,delta_add=0,beta=1,verbose=FALSE){
@@ -789,6 +792,7 @@ hypergate<-function(xp,gate_vector,level,delta_add=0,beta=1,verbose=FALSE){
 #' @param level A level of gate_vector that identifies the population of interest
 #' @param beta, should be the same as for the hypergate object
 #' @examples
+#' data(Samusik_01_subset)
 #' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
 #' gate_vector=Samusik_01_subset$labels
 #' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0)
@@ -810,6 +814,8 @@ channels_contributions<-function(gate,xp,gate_vector,level,beta=1){
 #' @param gate A return from hypergate
 #' @param xp Expression matrix as in the hypergate callxp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
 #' @examples
+#' data(Samusik_01_subset)
+#' xp=Samusik_01_subset$xp_src
 #' gate_vector=Samusik_01_subset$labels
 #' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
 #' head(boolmat(hg,xp))
@@ -843,12 +849,13 @@ boolmat<-function(gate,xp){
 #' @param beta Yield / purity trade-off
 #' @param verbose Whether to print information about optimization status
 #' @examples
+#' data(Samusik_01_subset)
 #' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
 #' gate_vector=Samusik_01_subset$labels
 #' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0)
 #' contribs=channels_contributions(gate=hg,xp=xp,gate_vector=gate_vector,level=23,beta=1)
 #' significant_channels=names(contribs)[contribs>=0.01]
-#' hg_reoptimized=reoptimize_strategy(gate=hg,channels_subset=significant_channels,xp=xp,gate_vector=gate_vector,level=23,beta=1)
+#' hg_reoptimized=reoptimize_strategy(gate=hg,channels_subset=significant_channels,xp,gate_vector,23)
 #' @export
 reoptimize_strategy<-function(gate,channels_subset,xp,gate_vector,level,beta=1,verbose=FALSE){
     beta2=beta^2
@@ -996,6 +1003,7 @@ reoptimize_strategy<-function(gate,channels_subset,xp,gate_vector,level,beta=1,v
 #' @param truth boolean vector of true values
 #' @param beta Weighting of yield as compared to precision. Increase beta so that the optimization favors yield, or decrease to favor purity.
 #' @examples
+#' data(Samusik_01_subset)
 #' truth=c(rep(TRUE,40),rep(FALSE,60))
 #' pred=rep(c(TRUE,FALSE),50)
 #' table(pred,truth) ##40% purity, 50% yield
@@ -1032,7 +1040,11 @@ F_beta=function(pred,truth,beta=1){
 #' @param cex passed to plot
 #' @param pch passed to plot
 #' @param ... passed to plot
-#' @usage gate_from_biplot(matrix=Samusik_01_subset$tsne,x_axis="tSNE1",y_axis="tSNE2")
+#' @examples
+#' if(interactive()){
+#'     ##See the details section to see how this function works
+#'     gate_from_biplot(matrix=Samusik_01_subset$tsne,x_axis="tSNE1",y_axis="tSNE2")
+#' }
 #' @export
 #' @return A named vector of length nrow(matrix) and names rownames(matrix). Ungated events are set to NA
 #' @details Data will be displayed as a bi-plot according to user-specified x_axis and y_axis arguments, then a call to locator() is made. The user can draw a polygon around parts of the plot that need gating. When done, 'right-click' or 'escape' (depending on the IDE) escapes locator() and closes the polygon. Then the user can press "n" to draw another polygon (that will define a new population), "c" to cancell and draw the last polygon again, or "s" to exit. When exiting, events that do not fall within any polygon are assigned NA, the others are assigned an integer value corresponding to the last polygon they lie into.
@@ -1110,8 +1122,10 @@ gate_from_biplot<-function(matrix,x_axis,y_axis,...,bty="l",pch=16,cex=0.5,sampl
 #' @param bty passed to plot
 #' @param ... passed to plot
 #' @examples
-#' colors=setNames(colorRampPalette(palette())(length(unique(sort(Samusik_01_subset$labels)))),sort(unique(Samusik_01_subset$labels)))
-#' color_biplot_by_discrete(matrix=Samusik_01_subset$tsne,discrete_vector=Samusik_01_subset$labels,colors=colors)
+#' data(Samusik_01_subset)
+#' levels=unique(sort(Samusik_01_subset$labels))
+#' colors=setNames(colorRampPalette(palette())(length(levels)),sort(levels))
+#' with(Samusik_01_subset,color_biplot_by_discrete(matrix=tsne,discrete_vector=labels,colors=colors))
 #' @export
 
 color_biplot_by_discrete<-function(matrix,discrete_vector,...,bty="l",pch=16,cex=0.5,colors=NULL){

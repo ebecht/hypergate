@@ -26,6 +26,8 @@ color_biplot_by_discrete(matrix, discrete_vector, ..., bty = "l", pch = 16,
 Colors a biplot according to a vector with discrete values
 }
 \examples{
-colors=setNames(colorRampPalette(palette())(length(unique(sort(Samusik_01_subset$labels)))),sort(unique(Samusik_01_subset$labels)))
-color_biplot_by_discrete(matrix=Samusik_01_subset$tsne,discrete_vector=Samusik_01_subset$labels,colors=colors)
+data(Samusik_01_subset)
+levels=unique(sort(Samusik_01_subset$labels))
+colors=setNames(colorRampPalette(palette())(length(levels)),sort(levels))
+with(Samusik_01_subset,color_biplot_by_discrete(matrix=tsne,discrete_vector=labels,colors=colors))
 }
