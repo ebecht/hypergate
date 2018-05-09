@@ -7,6 +7,23 @@
 FNTN_matrix.recycle(FNTN_matrix, B_FN_old, B_TN_old, B_FN_new, B_TN_new, xp_FN,
   xp_TN, par)
 }
+\arguments{
+\item{FNTN_matrix}{Expansion matrix to recycle}
+
+\item{B_FN_old}{Boolean matrix of FN events before the last expansion}
+
+\item{B_TN_old}{Boolean matrix of TN events before the last expansion}
+
+\item{B_FN_new}{Boolean matrix of FN events after the last expansion}
+
+\item{B_TN_new}{Boolean matrix of TN events after the last expansion}
+
+\item{xp_FN}{Expression matrix of False Negative events}
+
+\item{xp_TN}{Expression matrix of True Negative events}
+
+\item{par}{Current hyper-rectangle parametrization}
+}
 \description{
 Recycle an expansion matrix
 }

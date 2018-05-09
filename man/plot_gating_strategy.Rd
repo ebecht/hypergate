@@ -8,7 +8,7 @@ plot_gating_strategy(gate, xp, gate_vector, level, highlight = "black",
   path = "./", ...)
 }
 \arguments{
-\item{gate}{A hypergate object (produced by hypergate.stepwise.fullcycles())}
+\item{gate}{A hypergate object (produced by hypergate())}
 
 \item{xp}{The expression matrix from which the 'gate' parameter originates}
 

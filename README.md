@@ -1,13 +1,3 @@
----
-title: "Hypergate"
-author: "Etienne Becht"
-date: "2017-12-07"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Vignette Hypergate}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
 
 
 
@@ -80,9 +70,9 @@ x = c(12.54, 8.08, 7.12, 12.12, 17.32, 20.62, 21.04, 20.83, 18.07,
 y = c(-10.61, -14.76, -18.55, -20.33, -21.16, -19.74, -14.4, 
     -11.08, -10.02, -9.42)
 pol = list(x = x, y = y)
-require(sp)
-gate_vector = point.in.polygon(Samusik_01_subset$tsne[, 1], Samusik_01_subset$tsne[, 
-    2], pol$x, pol$y)
+library("sp")
+gate_vector = sp::point.in.polygon(Samusik_01_subset$tsne[, 1], 
+    Samusik_01_subset$tsne[, 2], pol$x, pol$y)
 plot(Samusik_01_subset$tsne, pch = 16, cex = 0.5, col = ifelse(gate_vector == 
     1, "firebrick3", "lightsteelblue"))
 polygon(pol, lty = 2)
@@ -92,60 +82,40 @@ polygon(pol, lty = 2)
 
 #### Clustering
 
-Another option to define a cell cluster of interest is to use the output of a clustering algorithm. Popular options for cytometry include *FlowSOM* (available from Bioconductor) or *Phenograph* (available from the ```cytofkit``` package from Bioconductor)
+Another option to define a cell cluster of interest is to use the output of a clustering algorithm. Popular options for cytometry include *FlowSOM* (available from Bioconductor) or *Phenograph* (available from the ```cytofkit``` package from Bioconductor). An example call for Rphenograph is below:
 
 
 ```r
 require(Rphenograph)
 set.seed(5881215)
 clustering = Rphenograph(Samusik_01_subset$xp_src[, Samusik_01_subset$regular_channels])
-```
-
-```
-## Run Rphenograph starts:
-##   -Input data of 2000 rows and 36 columns
-##   -k is set to 30
-```
-
-```
-##   Finding nearest neighbors...DONE ~ 0.133 s
-##   Compute jaccard coefficient between nearest-neighbor sets...DONE ~ 0.436 s
-##   Build undirected graph from the weighted links...DONE ~ 0.189 s
-##   Run louvain clustering on the graph ...DONE ~ 0.106 s
-```
-
-```
-## Run Rphenograph DONE, totally takes 0.863999999999578s.
-```
-
-```
-##   Return a community class
-##   -Modularity value: 0.8414652 
-##   -Number of clusters: 12
-```
-
-```r
 cluster_labels = membership(clustering[[2]])
 ```
+In this Vignette we use the simpler kmeans option instead:
 
-In this example we can see that the cluster *10* corresponds to the population we manually selected from the t-SNE biplot
 
 ```r
-plot(Samusik_01_subset$tsne, col = ifelse(cluster_labels == 10, 
+set.seed(5881215)
+cluster_labels = kmeans(Samusik_01_subset$tsne, 20, nstart = 100)$cluster
+```
+
+In this example we can see that the kmeans cluster *20* corresponds to the population we manually selected from the t-SNE biplot
+
+```r
+plot(Samusik_01_subset$tsne, col = ifelse(cluster_labels == 20, 
     "firebrick3", "lightsteelblue"), pch = 16, cex = 0.5)
 ```
 
-![Selection of a cluster from a clustering algorithm output](figure/unnamed-chunk-9-1.png)
+![Selection of a cluster from a clustering algorithm output](figure/unnamed-chunk-10-1.png)
 
 ## Running Hypergate
 
-The function to optimize gating strategies is ```hypergate.stepwise.fullcycles```. Its main arguments are ```xp``` (a numeric matrix encoding expression), ```gate_vector``` (a vector with few unique values), ```level``` (specificies what value of gate_vector to gate upon, i.e. events satisfying ```gate_vector==level``` will be gated in)
+The function to optimize gating strategies is ```hypergate```. Its main arguments are ```xp``` (a numeric matrix encoding expression), ```gate_vector``` (a vector with few unique values), ```level``` (specificies what value of gate_vector to gate upon, i.e. events satisfying ```gate_vector==level``` will be gated in)
 
 
 ```r
-hg_output = hypergate.stepwise.fullcycles(xp = Samusik_01_subset$xp_src[, 
-    Samusik_01_subset$regular_channels], gate_vector = gate_vector, 
-    level = 1, verbose = FALSE)
+hg_output = hypergate(xp = Samusik_01_subset$xp_src[, Samusik_01_subset$regular_channels], 
+    gate_vector = gate_vector, level = 1, verbose = FALSE)
 ```
 
 ## Interpreting and polishing the results
@@ -216,7 +186,7 @@ plot_gating_strategy(gate = hg_output, xp = Samusik_01_subset$xp_src[,
     level = 1, highlight = "firebrick3")
 ```
 
-![Gating strategy](figure/unnamed-chunk-16-1.png)![Gating strategy](figure/unnamed-chunk-16-2.png)
+![Gating strategy](figure/unnamed-chunk-17-1.png)![Gating strategy](figure/unnamed-chunk-17-2.png)
 
 Another important point to consider is how the F$\beta$-score increases with each added channel. This gives an idea of how many channels are required to reach a close-to-optimal gating strategy.
 
@@ -232,7 +202,7 @@ barplot(rev(f_values_vs_number_of_parameters), names.arg = rev(c("Initialization
     mar = c(10, 4, 1, 1), horiz = TRUE, xlab = "Cumulative F1-score")
 ```
 
-![F1-score obtained during optimization when adding parameters](figure/unnamed-chunk-17-1.png)
+![F1-score obtained during optimization when adding parameters](figure/unnamed-chunk-18-1.png)
 
 This graph tells us that the biggest increase is by far due to SiglecF+, while the lowest is due to Ly6C-.
 
@@ -249,7 +219,7 @@ barplot(contributions, las = 3, mar = c(10, 4, 1, 1), horiz = TRUE,
     xlab = "F1-score deterioration when the parameter is ignored")
 ```
 
-![Contribution of each parameter to the output](figure/unnamed-chunk-18-1.png)
+![Contribution of each parameter to the output](figure/unnamed-chunk-19-1.png)
 
 ### Reoptimize strategy
 
@@ -272,4 +242,4 @@ plot_gating_strategy(gate = hg_output_polished, xp = Samusik_01_subset$xp_src[,
     level = 1, highlight = "firebrick3")
 ```
 
-![Final output](figure/unnamed-chunk-20-1.png)
+![Final output](figure/unnamed-chunk-21-1.png)

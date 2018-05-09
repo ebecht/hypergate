@@ -9,6 +9,31 @@ expand.update(expand.object, pars = envir$pars, xp_pos = envir$xp_pos,
   state_neg = envir$state_neg, b_pos = envir$b_pos, b_neg = envir$b_neg,
   n = envir$n, TP = envir$TP, TN = envir$TN, envir = parent.frame())
 }
+\arguments{
+\item{expand.object}{output of the expand function}
+
+\item{pars}{Current parametrization of the hyperrectangle}
+
+\item{xp_pos}{Expression matrix for positive events}
+
+\item{xp_neg}{Expression matrix for negative events}
+
+\item{state_pos}{State vector of the positive events}
+
+\item{state_neg}{State vector of the negative events}
+
+\item{b_pos}{boolean matrix of positive events}
+
+\item{b_neg}{boolean matrix of negative events}
+
+\item{n}{passed to f}
+
+\item{TP}{integer: current number of TP}
+
+\item{TN}{integer: current number of TN}
+
+\item{envir}{Current environment of the optimization}
+}
 \description{
 Update the hyperrectangle to the best expansion move found
 }

@@ -9,13 +9,13 @@ fill_FNTN_matrix(xp_FN, xp_TN, B_FN, B_TN, par)
 \arguments{
 \item{xp_FN}{Expression matrix of False Negative events}
 
+\item{xp_TN}{Expression matrix of True Negative events}
+
 \item{B_FN}{Boolean matrix of FN events}
 
+\item{B_TN}{Boolean matrix of TN events}
+
 \item{par}{Current hyper-rectangle parametrization}
-
-\item{xp_FN}{Expression matrix of True Negative events}
-
-\item{B_FN}{Boolean matrix of TN events}
 }
 \description{
 fill_FNTN_matrix Used for assessing whether an expansion move is possible

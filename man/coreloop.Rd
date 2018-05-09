@@ -6,6 +6,11 @@
 \usage{
 coreloop(par, hg.env = hg.env$hg.env)
 }
+\arguments{
+\item{par}{Current parametrization of the hyperrectangle}
+
+\item{hg.env}{Environment where the main execution of hypergate takes place}
+}
 \description{
 Core optimization loop of hypergate
 }

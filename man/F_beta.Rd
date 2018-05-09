@@ -10,6 +10,8 @@ F_beta(pred, truth, beta = 1)
 \item{pred}{boolean vector of predicted values}
 
 \item{truth}{boolean vector of true values}
+
+\item{beta}{Weighting of yield as compared to precision. Increase beta so that the optimization favors yield, or decrease to favor purity.}
 }
 \description{
 Compute a F_beta score comparing two boolean vectors

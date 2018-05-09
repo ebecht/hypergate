@@ -5,7 +5,7 @@
 \title{Colors a biplot according to a vector with discrete values}
 \usage{
 color_biplot_by_discrete(matrix, discrete_vector, ..., bty = "l", pch = 16,
-  cex = 0.5, colors = NULL, alpha = 100)
+  cex = 0.5, colors = NULL)
 }
 \arguments{
 \item{matrix}{a two columns matrix}
@@ -13,6 +13,14 @@ color_biplot_by_discrete(matrix, discrete_vector, ..., bty = "l", pch = 16,
 \item{discrete_vector}{a vector of size nrow(matrix)}
 
 \item{...}{passed to plot}
+
+\item{bty}{passed to plot}
+
+\item{pch}{passed to plot}
+
+\item{cex}{passed to plot}
+
+\item{colors}{Palette to used named after the unique elements of discrete_vector. Generated from rainbow() if missing.}
 }
 \description{
 Colors a biplot according to a vector with discrete values

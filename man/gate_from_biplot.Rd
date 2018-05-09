@@ -5,7 +5,7 @@
 \title{gate_from_biplot}
 \usage{
 gate_from_biplot(matrix, x_axis, y_axis, ..., bty = "l", pch = 16,
-  cex = 0.5, alpha = 100, sample = NULL)
+  cex = 0.5, sample = NULL)
 }
 \arguments{
 \item{matrix}{A matrix}
@@ -16,7 +16,11 @@ gate_from_biplot(matrix, x_axis, y_axis, ..., bty = "l", pch = 16,
 
 \item{...}{passed to plot}
 
-\item{alpha}{Transparency value (between 0 and 255, 0 is fully transparent)}
+\item{bty}{passed to plot}
+
+\item{pch}{passed to plot}
+
+\item{cex}{passed to plot}
 
 \item{sample}{Used to downsample the data in case there are too many events to plot quickly}
 }

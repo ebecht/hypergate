@@ -1,21 +1,20 @@
 #' @title f
 #' @description Computes the F_beta score given an intenger number of True Positives (TP), True Negatives (TN). It is optimized for speed and n is thus not the total number of events
-#' @param (TP,TN) Number of true positive / negative
-#' @param n: beta^2*(TP+FN)+TN+FP
-#' @param beta2: squared-beta to weight precision (low beta) or recall (high beta) more
-#' @export
-f=function(TP,TN,n,beta2=1){
+#' @param TP Number of true positive events
+#' @param TN Number of true negative events
+#' @param n beta^2*(TP+FN)+TN+FP
+#' @param beta2 squared-beta to weight precision (low beta) or recall (high beta) more
+f<-function(TP,TN,n,beta2=1){
     (1+beta2)*TP/(n+TP-TN) ##n equals beta2*(TP+FN)+(TN+FP)=beta2*nT+nF
 }
 
 #' @title fill_FNTN_matrix
 #' @description fill_FNTN_matrix Used for assessing whether an expansion move is possible
 #' @param xp_FN Expression matrix of False Negative events
-#' @param xp_FN Expression matrix of True Negative events
+#' @param xp_TN Expression matrix of True Negative events
 #' @param B_FN Boolean matrix of FN events
-#' @param B_FN Boolean matrix of TN events
+#' @param B_TN Boolean matrix of TN events
 #' @param par Current hyper-rectangle parametrization
-#' @export
 fill_FNTN_matrix<-function(xp_FN,xp_TN,B_FN,B_TN,par){
     FN=nrow(xp_FN)
     TN=nrow(xp_TN)
@@ -76,7 +75,7 @@ fill_FNTN_matrix<-function(xp_FN,xp_TN,B_FN,B_TN,par){
 
 #' @title plot_gating_strategy
 #' @description Plot a hypergate return
-#' @param gate A hypergate object (produced by hypergate.stepwise.fullcycles())
+#' @param gate A hypergate object (produced by hypergate())
 #' @param xp The expression matrix from which the 'gate' parameter originates
 #' @param gate_vector Categorical data from which the 'gate' parameter originates
 #' @param level Level of gate_vector identifying the population of interest
@@ -146,13 +145,13 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
                 x0=parameters[i],
                 y0=parameters[i+1],
                 x1=ranges.global[direction[i],chan1],
-                col=makeTransparent("red",255)
+                col="red"
             )
             segments(
                 x0=parameters[i],
                 y0=parameters[i+1],
                 y1=ranges.global[direction[i+1],chan2],
-                col=makeTransparent("red",255)
+                col="red"
             )
 
             ##Updating active_events
@@ -190,7 +189,7 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
              cex=0.1,
              col=cols[active_events]
              )
-        abline(h=parameters[i],col=makeTransparent("red",255))
+        abline(h=parameters[i],col="red")
         if(direction[i]==2){
             test1=xp[,chan1]>=parameters[i] ##If _min, events above parameter are selected
         } else {
@@ -211,27 +210,35 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
 #' @param xp Expression matrix used for gate
 #' @export
 subset_matrix_hg<-function(gate,xp){
-    chans=gate$active_channels
-    if(length(chans)>0){
-        cols=colnames(xp)
-        signs=rep(0,2*ncol(xp))
-        signs[2*which(paste(cols,"_min",sep="")%in%chans)-1]=1
-        signs[2*which(paste(cols,"_max",sep="")%in%chans)]=-1
-        ui=matrix(nrow=2*ncol(xp),ncol=ncol(xp),data=0)
-        for(i in 1:length(signs)){
-            ui[i,ceiling(i/2)]=signs[i]
-        }
-        ci=tail(gate$pars.history,1)[1,]*-signs
-        ci=matrix(nrow=ncol(xp)*2,ncol=nrow(xp),data=rep(ci,nrow(xp)),byrow=FALSE)
-        return(subset_matrix_hyperrectangle.fast(ui%*%t(xp),ci))
-    } else {
-        return(rep(TRUE,nrow(xp)))
-    }
+		if(length(gate$active_channels)>0){
+		state=rep(TRUE,nrow(xp))
+		pars=tail(gate$pars.history,1)[1,]
+		for(chan in gate$active_channels){
+			chan_real=substr(chan,1,nchar(chan)-4)
+			if(substr(chan,nchar(chan)-3,nchar(chan))=="_min"){
+				state[state][xp[state,chan_real]<pars[chan]]=FALSE
+			} else {
+				state[state][xp[state,chan_real]>pars[chan]]=FALSE
+			}        
+		}
+		return(state)
+	} else {
+		return(rep(TRUE,nrow(xp)))
+	}
 }
 
 #' @title contract
 #' @description Test (some) possible contractions of the hyperrectangle
-#' @export
+#' @param par Current parametrization of the hyperrectangle
+#' @param xp_pos Expression matrix for positive events
+#' @param state_pos State vector of the positive events
+#' @param xp_neg Expression matrix for negative events
+#' @param state_neg State vector of the negative events
+#' @param n passed to f
+#' @param TP integer: current number of TP
+#' @param TN integer: current number of TN
+#' @param beta Passed from the top-level function
+#' @param envir Current environment of the optimization
 contract<-function(
                    par=par,
                    xp_pos=envir$xp_pos,
@@ -302,7 +309,18 @@ contract<-function(
 ##From current state and update parameters, returns updated state
 #' @title contract.update
 #' @description Update the hyperrectangle to the best contraction move found
-#' @export
+#' @param contract_object output of the contract function
+#' @param pars Current parametrization of the hyperrectangle
+#' @param active_channels vector of currently-used parameters
+#' @param b_pos boolean matrix of positive events
+#' @param b_neg boolean matrix of negative events
+#' @param xp_pos Expression matrix for positive events
+#' @param state_pos State vector of the positive events
+#' @param xp_neg Expression matrix for negative events
+#' @param state_neg State vector of the negative events
+#' @param envir Current environment of the optimization
+#' @param TP integer: current number of TP
+#' @param TN integer: current number of TN
 contract.update<-function(
                           contract_object,
                           pars=envir$pars,
@@ -352,7 +370,13 @@ contract.update<-function(
 
 #' @title expand
 #' @description Test (some) possible expansions of the hyperrectangle
-#' @export
+#' @param n passed to f
+#' @param TP integer: current number of TP
+#' @param TN integer: current number of TN
+#' @param FN integer: current number of FP
+#' @param beta Passed from the top-level function 
+#' @param envir Coreloop environment
+#' @param FNTN_matrix Boolean matrix of dim (FN, FN + TN), where Mij is TRUE if and only if expanding to include the ith FN in the gate would lead to the inclusion of the jth column event
 expand<-function(
                  FN=envir$FN,
                  FNTN_matrix=envir$FNTN_matrix,
@@ -385,7 +409,18 @@ expand<-function(
 
 #' @title expand.update
 #' @description Update the hyperrectangle to the best expansion move found
-#' @export
+#' @param expand.object output of the expand function
+#' @param pars Current parametrization of the hyperrectangle
+#' @param xp_pos Expression matrix for positive events
+#' @param xp_neg Expression matrix for negative events
+#' @param state_pos State vector of the positive events
+#' @param state_neg State vector of the negative events
+#' @param b_pos boolean matrix of positive events
+#' @param b_neg boolean matrix of negative events
+#' @param n passed to f
+#' @param TP integer: current number of TP
+#' @param TN integer: current number of TN
+#' @param envir Current environment of the optimization
 expand.update<-function(
                         expand.object,
                         pars=envir$pars,
@@ -483,7 +518,14 @@ expand.update<-function(
 
 #' @title FNTN_matrix.recycle
 #' @description Recycle an expansion matrix
-#' @export
+#' @param FNTN_matrix Expansion matrix to recycle
+#' @param xp_FN Expression matrix of False Negative events
+#' @param xp_TN Expression matrix of True Negative events
+#' @param B_FN_old Boolean matrix of FN events before the last expansion
+#' @param B_TN_old Boolean matrix of TN events before the last expansion
+#' @param B_FN_new Boolean matrix of FN events after the last expansion
+#' @param B_TN_new Boolean matrix of TN events after the last expansion
+#' @param par Current hyper-rectangle parametrization
 FNTN_matrix.recycle<-function(
                               FNTN_matrix, ##element to recycle
                               B_FN_old,
@@ -507,10 +549,20 @@ FNTN_matrix.recycle<-function(
 }
 
 #' @title coreloop
+#' @param par Current parametrization of the hyperrectangle
+#' @param hg.env Environment where the main execution of hypergate takes place
 #' @description Core optimization loop of hypergate
-#' @export
 coreloop<-function(par,hg.env=hg.env$hg.env){
     loop.env=environment()
+    pars=hg.env$par
+    active_channels=hg.env$active_channels
+    TP=hg.env$TP
+    state_pos=hg.env$state_pos
+    state_neg=hg.env$state_neg
+    b_pos=hg.env$b_pos
+    b_neg=hg.env$b_neg
+    
+    
     ##Step 1 ADD NEW CHANNEL
     contractions=contract(loop.env$par,envir=loop.env$hg.env)
     ##best_contraction=which.max(sapply(contractions,function(x)x$newF))
@@ -596,7 +648,7 @@ coreloop<-function(par,hg.env=hg.env$hg.env){
     return(loop.env)
 }
 
-#' @title hypergate.stepwise.fullcycles
+#' @title hypergate
 #' @description Finds a hyperrectangle gating around a population of interest
 #' @param xp an Expression matrix
 #' @param gate_vector A Categorical vector of length nrow(xp)
@@ -605,7 +657,7 @@ coreloop<-function(par,hg.env=hg.env$hg.env){
 #' @param beta Purity / Yield trade-off
 #' @param verbose Boolean. Whether to print information about the optimization status.
 #' @export
-hypergate.stepwise.fullcycles<-function(xp,gate_vector,level,delta_add=0,beta=1,verbose=FALSE){
+hypergate<-function(xp,gate_vector,level,delta_add=0,beta=1,verbose=FALSE){
     beta2=beta^2
     if(is.null(rownames(xp))){
         rownames(xp)=1:nrow(xp)
@@ -904,6 +956,7 @@ reoptimize_strategy<-function(gate,channels_subset,xp,gate_vector,level,beta=1,v
 #' @description Compute a F_beta score comparing two boolean vectors
 #' @param pred boolean vector of predicted values
 #' @param truth boolean vector of true values
+#' @param beta Weighting of yield as compared to precision. Increase beta so that the optimization favors yield, or decrease to favor purity. 
 #' @export
 
 F_beta=function(pred,truth,beta=1){
@@ -922,30 +975,22 @@ F_beta=function(pred,truth,beta=1){
     F
 }
 
-#' @export
-#' @title subset_matrix_hyperrectangle.fast
-#' @description From a vector of boundary conditions and an expression matrix returns a boolean vector testing whether all conditions are satisfied
-subset_matrix_hyperrectangle.fast=function (ui_x_xp, ci) 
-{
-    comparisons = rep(nrow(ci), ncol(ci))
-    colSums((ui_x_xp + ci) >= 0) == comparisons
-}
-
 #' @title gate_from_biplot
 #' @description From a biplot let the user interactively draw polygons to create a "Gate" vector
 #' @param matrix A matrix
 #' @param x_axis character, colname of matrix used for x-axis in the biplot
 #' @param y_axis character, colname of matrix used for y-axis in the biplot
 #' @param sample Used to downsample the data in case there are too many events to plot quickly
+#' @param bty passed to plot
+#' @param cex passed to plot
+#' @param pch passed to plot
 #' @param ... passed to plot
-#' @param alpha Transparency value (between 0 and 255, 0 is fully transparent)
 #' @export
 #' @return A named vector of length nrow(matrix) and names rownames(matrix). Ungated events are set to NA
 #' @details Data will be displayed as a bi-plot according to user-specified x_axis and y_axis arguments, then a call to locator() is made. The user can draw a polygon around parts of the plot that need gating. When done, 'right-click' or 'escape' (depending on the IDE) escapes locator() and closes the polygon. Then the user can press "n" to draw another polygon (that will define a new population), "c" to cancell and draw the last polygon again, or "s" to exit. When exiting, events that do not fall within any polygon are assigned NA, the others are assigned an integer value corresponding to the last polygon they lie into.
 
-gate_from_biplot<-function(matrix,x_axis,y_axis,...,bty="l",pch=16,cex=0.5,alpha=100,sample=NULL)
+gate_from_biplot<-function(matrix,x_axis,y_axis,...,bty="l",pch=16,cex=0.5,sample=NULL)
 {
-  require("sp")
   xp=matrix[,c(x_axis,y_axis)]
   if(!is.null(sample)){
     s=sort(sample(1:nrow(xp),sample))
@@ -954,7 +999,7 @@ gate_from_biplot<-function(matrix,x_axis,y_axis,...,bty="l",pch=16,cex=0.5,alpha
   }
 
   gate_updated=rep(0,nrow(xp))
-  color_biplot_by_discrete(xp[s,],gate_updated[s],bty=bty,pch=pch,cex=cex,alpha=alpha,...)
+  color_biplot_by_discrete(xp[s,],gate_updated[s],bty=bty,pch=pch,cex=cex,...)
 
   input.message=" n : new gate, c : redo last, s : stop gating. "
   cat("\nPlease use the mouse pointer to draw")
@@ -968,7 +1013,7 @@ gate_from_biplot<-function(matrix,x_axis,y_axis,...,bty="l",pch=16,cex=0.5,alpha
     if(u=="n"){
       gate=gate_updated
       i=i+1
-      col=setNames(makeTransparent(c("black",rainbow(i)),alpha=alpha),0:i)
+      col=setNames(c("black",rainbow(i)),0:i)
 
       new.pol=en.locator()
 
@@ -990,14 +1035,16 @@ gate_from_biplot<-function(matrix,x_axis,y_axis,...,bty="l",pch=16,cex=0.5,alpha
     }
     u=readline(paste("Input ?",input.message,"\n",sep=""))
   }
-
-  sapply(1:length(polygons),function(i,polygons){
-    poly=polygons[[i]]
-    coords = cbind(poly$x, poly$y)
-    coords=rbind(coords,coords[1,])
-    s = SpatialLines(list(Lines(list(Line(coords)),ID=1)))
-    text(coordinates(gCentroid(s))[,1],coordinates(gCentroid(s))[,2],labels=as.character(i),xpd=T,font=2)
-  },polygons=polygons)
+  
+  if(requireNamespace("rgeos",quietly=TRUE)&requireNamespace("sp",quietly=TRUE)){
+      sapply(1:length(polygons),function(i,polygons){
+          poly=polygons[[i]]
+          coords = cbind(poly$x, poly$y)
+          coords=rbind(coords,coords[1,])
+          s = sp::SpatialLines(list(sp::Lines(list(sp::Line(coords)),ID=1)))
+          text(sp::coordinates(rgeos::gCentroid(s))[,1],sp::coordinates(rgeos::gCentroid(s))[,2],labels=as.character(i),xpd=T,font=2)
+      },polygons=polygons)
+  }
   gate=gate_updated
 
   gate[gate==0]=NA
@@ -1006,42 +1053,25 @@ gate_from_biplot<-function(matrix,x_axis,y_axis,...,bty="l",pch=16,cex=0.5,alpha
   setNames(gate,rownames(matrix))
 }
 
-#' @title makeTransparent
-#' Makes a color transparent
-#' @export
-#' @param colors A vector of colors as in `?col2rgb`
-#' @param alpha transparency value (0=fully transparent, 255=fully opaque)
-#' @return A color in 9 characters format
-#' @author Ricardo Oliveros-Ramos 
-#' @seealso http://stackoverflow.com/questions/8047668/transparent-equivalent-of-given-color
-
-makeTransparent = function(colors, alpha=255) {
-  sapply(colors,function(col){
-    col=col2rgb(col)
-    rgb(red=col[1,], green=col[2,], blue=col[3,], alpha=alpha, maxColorValue=255)
-  })
-}
-
-
-
 #' Colors a biplot according to a vector with discrete values
-#'
 #' @param matrix a two columns matrix
 #' @param discrete_vector a vector of size nrow(matrix)
+#' @param colors Palette to used named after the unique elements of discrete_vector. Generated from rainbow() if missing.
+#' @param pch passed to plot
+#' @param cex passed to plot
+#' @param bty passed to plot
 #' @param ... passed to plot
 #' @export
 
-color_biplot_by_discrete<-function(matrix,discrete_vector,...,bty="l",pch=16,cex=0.5,colors=NULL,alpha=100){
+color_biplot_by_discrete<-function(matrix,discrete_vector,...,bty="l",pch=16,cex=0.5,colors=NULL){
     levels=unique(discrete_vector)
     if(missing(colors)){
-        colors=setNames(makeTransparent(c("black",rainbow(length(levels)-1)),alpha=alpha),levels)
+        colors=setNames(c("black",rainbow(length(levels)-1)),levels)
     }
     plot(matrix,bty=bty,pch=pch,cex=cex,col=colors[as.character(discrete_vector)],...)
 }
 
 #' Wrapper to locator that plots segments on the fly
-#' @export
-
 en.locator<-function(){
   input=TRUE
   x=vector()
@@ -1062,30 +1092,65 @@ en.locator<-function(){
 #' Remove self intersection in polygons
 #' @param poly a polygon (list with two components x and y which are equal-length numerical vectors)
 #' @return A polygon without overlapping edges and new vertices corresponding to non-inner points of intersection
-#' @export
 
 polygon.clean<-function(poly){
-  require(rgeos)
-  require(sp)
-  coords=cbind(poly$x,poly$y)
-  coords=rbind(coords,coords[1,])
-  s = SpatialLines(list(Lines(list(Line(coords)),ID=1)))
-  s_outer = gUnaryUnion(gPolygonize(gNode(s)))
-  x=s_outer@polygons[[1]]@Polygons[[1]]@coords[,"x"]
-  y=s_outer@polygons[[1]]@Polygons[[1]]@coords[,"y"]
-  return(list(x=x[-length(x)],y=y[-length(y)]))
+    if(requireNamespace("rgeos",quietly=TRUE)&requireNamespace("sp",quietly=TRUE)){
+        coords=cbind(poly$x,poly$y)
+        coords=rbind(coords,coords[1,])
+        s = sp::SpatialLines(list(sp::Lines(list(sp::Line(coords)),ID=1)))
+        s_outer = rgeos::gUnaryUnion(rgeos::gPolygonize(rgeos::gNode(s)))
+        x=s_outer@polygons[[1]]@Polygons[[1]]@coords[,"x"]
+        y=s_outer@polygons[[1]]@Polygons[[1]]@coords[,"y"]
+        return(list(x=x[-length(x)],y=y[-length(y)]))
+    } else {
+        return(poly)
+    }
 }
 
 #' Updates a gate vector
-#'
 #' @param xp A two colums matrix
-#' @param polygon.list A list of lists with two components x and y of equal lenghts and numeric values
+#' @param polygon A list with two components x and y of equal lenghts and numeric values
 #' @param gate_vector a vector of length nrow(xp) with integer values
 #' @param value The number that will be assigned to gate_vector, corresponding to points that lie in the polygon
 #' @return The updated gate_vector
-#' @export
 
 update_gate=function(xp,polygon,gate_vector=rep(0,nrow(xp)),value=1){
-  gate_vector[point.in.polygon(xp[,1],xp[,2],polygon$x,polygon$y)!=0]=value
+    if(requireNamespace("sp",quietly=FALSE)){
+        gate_vector[sp::point.in.polygon(xp[,1],xp[,2],polygon$x,polygon$y)!=0]=value
+    }
   gate_vector
 }
+
+#' 2000 events randomly sampled from the 'Samusik_01' dataset
+#' @name Samusik_01_subset
+#' @docType data
+#' @format list with four elements: fs_src (a flowSet), xp_src (its expression matrix), labels (manual gates of the events) and tsne (a tSNE projection of the dataset)
+#' @references https://flowrepository.org/id/FR-FCM-ZZPH
+"Samusik_01_subset"
+
+#' @importFrom grDevices col2rgb
+NULL
+#' @importFrom grDevices dev.off
+NULL
+#' @importFrom grDevices png
+NULL
+#' @importFrom grDevices rainbow
+NULL
+#' @importFrom grDevices rgb
+NULL
+#' @importFrom graphics abline
+NULL
+#' @importFrom graphics locator
+NULL
+#' @importFrom graphics plot
+NULL
+#' @importFrom graphics segments
+NULL
+#' @importFrom graphics text
+NULL
+#' @importFrom graphics title
+NULL
+#' @importFrom stats setNames
+NULL
+#' @importFrom utils tail
+NULL

@@ -9,6 +9,27 @@ contract(par = par, xp_pos = envir$xp_pos, state_pos = envir$state_pos,
   TP = envir$TP, TN = envir$TN, beta = envir$beta2,
   envir = parent.frame())
 }
+\arguments{
+\item{par}{Current parametrization of the hyperrectangle}
+
+\item{xp_pos}{Expression matrix for positive events}
+
+\item{state_pos}{State vector of the positive events}
+
+\item{xp_neg}{Expression matrix for negative events}
+
+\item{state_neg}{State vector of the negative events}
+
+\item{n}{passed to f}
+
+\item{TP}{integer: current number of TP}
+
+\item{TN}{integer: current number of TN}
+
+\item{beta}{Passed from the top-level function}
+
+\item{envir}{Current environment of the optimization}
+}
 \description{
 Test (some) possible contractions of the hyperrectangle
 }

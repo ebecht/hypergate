@@ -8,6 +8,21 @@ expand(FN = envir$FN, FNTN_matrix = envir$FNTN_matrix, TP = envir$TP,
   TN = envir$TN, n = envir$n, beta = envir$beta2,
   envir = parent.frame())
 }
+\arguments{
+\item{FN}{integer: current number of FP}
+
+\item{FNTN_matrix}{Boolean matrix of dim (FN, FN + TN), where Mij is TRUE if and only if expanding to include the ith FN in the gate would lead to the inclusion of the jth column event}
+
+\item{TP}{integer: current number of TP}
+
+\item{TN}{integer: current number of TN}
+
+\item{n}{passed to f}
+
+\item{beta}{Passed from the top-level function}
+
+\item{envir}{Coreloop environment}
+}
 \description{
 Test (some) possible expansions of the hyperrectangle
 }

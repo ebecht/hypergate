@@ -10,6 +10,31 @@ contract.update(contract_object, pars = envir$pars,
   state_neg = envir$state_neg, TN = envir$TN, TP = envir$TP,
   xp_pos = envir$xp_pos, xp_neg = envir$xp_neg, envir = parent.frame())
 }
+\arguments{
+\item{contract_object}{output of the contract function}
+
+\item{pars}{Current parametrization of the hyperrectangle}
+
+\item{active_channels}{vector of currently-used parameters}
+
+\item{b_pos}{boolean matrix of positive events}
+
+\item{b_neg}{boolean matrix of negative events}
+
+\item{state_pos}{State vector of the positive events}
+
+\item{state_neg}{State vector of the negative events}
+
+\item{TN}{integer: current number of TN}
+
+\item{TP}{integer: current number of TP}
+
+\item{xp_pos}{Expression matrix for positive events}
+
+\item{xp_neg}{Expression matrix for negative events}
+
+\item{envir}{Current environment of the optimization}
+}
 \description{
 Update the hyperrectangle to the best contraction move found
 }

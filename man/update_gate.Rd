@@ -9,11 +9,11 @@ update_gate(xp, polygon, gate_vector = rep(0, nrow(xp)), value = 1)
 \arguments{
 \item{xp}{A two colums matrix}
 
+\item{polygon}{A list with two components x and y of equal lenghts and numeric values}
+
 \item{gate_vector}{a vector of length nrow(xp) with integer values}
 
 \item{value}{The number that will be assigned to gate_vector, corresponding to points that lie in the polygon}
-
-\item{polygon.list}{A list of lists with two components x and y of equal lenghts and numeric values}
 }
 \value{
 The updated gate_vector
