@@ -100,21 +100,21 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
     gate_vector=gate_vector[w]
     truce=gate_vector==level
 
-    channels=gate$active_channels
-    channels=sub("_max","",channels)
-    channels=sub("_min","",channels)
-    ranges.global=apply(xp[,channels,drop=F],2,range)
-    rownames(ranges.global)=c("min","max")
-
     parameters=gate$pars.history
     active_parameters=gate$active_channels##apply(parameters,2,function(x){x[length(x)]!=x[1]})
     parameters=parameters[,active_parameters,drop=FALSE]
-    parameters_order=apply(parameters,2,function(x)min(which(x!=x[1])))
-    parameters=parameters[,order(parameters_order,decreasing=FALSE),drop=FALSE]
+    if (nrow(parameters) > 1) {
+      parameters_order=
+        apply(parameters,2,function(x)min(which(x!=x[1])))
+      parameters=parameters[,order(parameters_order,decreasing=FALSE),drop=FALSE]
+    }
     parameters=setNames(parameters[nrow(parameters),,drop=TRUE],colnames(parameters))
     channels=sub("_max","",names(parameters))
     channels=sub("_min","",channels)
 
+    ranges.global=apply(xp[,channels,drop=F],2,range)
+    rownames(ranges.global)=c("min","max")
+    
     cols=rep("black",nrow(xp))
     cols[gate_vector==level]=highlight
 
@@ -209,6 +209,67 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
             dev.off()
         }
     }
+}
+
+#' @title hgate_info
+#' @description Extract information about a hypergate return: the channels of the phenotype, the sign of the channels, the sign of the comparison, the thresholds.
+#' @param gate A hypergate object (produced by hypergate())
+#' @return A data.frame with channel, sign, comp and threshold columns
+#' @seealso \code{\link{hg_pheno}}, \code{\link{hg_rule}}
+#' @examples
+#' data(Samusik_01_subset)
+#' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
+#' gate_vector=Samusik_01_subset$labels
+#' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
+#' hgate_info(gate=hg)
+#' hgate_pheno(gate=hg)
+#' hgate_rule(gate=hg)
+#' @export
+hgate_info <- function(gate) {
+  # retrieve threshold
+  pars = gate$pars.history
+  active_pars = gate$active_channels
+  pars = pars[, active_pars, drop = FALSE]
+  pars_order = apply(pars, 2, function(x) min(which(x != x[1])))
+  pars = pars[, order(pars_order, decreasing = FALSE), drop = FALSE]
+  pars = setNames(pars[nrow(pars), , drop = TRUE], colnames(pars))
+  # get channel names
+  channels = sub("_max", "", names(pars))
+  channels = sub("_min", "", channels)
+  # phenotype sign
+  dir.sign = rep('+', length(pars))
+  dir.sign[grep("_max", names(pars))] = '-'
+  # comparison sign
+  dir.comp = rep(' > ', length(pars))
+  dir.comp[grep("_max", names(pars))] = ' <= '
+  # all together
+  data.frame(
+    channels, sign = dir.sign, comp = dir.comp, threshold = pars
+  )
+}
+
+#' @title hgate_pheno
+#' @description Build a human readable phenotype, i.e. a combination of channels and sign (+ or -) from a hypergate return.
+#' @param gate A hypergate object (produced by hypergate())
+#' @return A string representing the phenotype.
+#' @seealso \code{\link{hg_rule}}, \code{\link{hg_info}}
+#' @examples
+#' ## See hgate_info
+#' @export
+hgate_pheno <- function(gate, collapse = ", ") {
+  with(hgate_info(gate), paste0(channels, sign, collapse = collapse))
+}
+
+#' @title hgate_info
+#' @description Extract information about a hypergate return: the channels of the phenotype, the sign of the channels, the sign of the comparison, the thresholds.
+#' @param gate A hypergate object (produced by hypergate())
+#' @return A data.frame with channel, sign, comp and threshold columns
+#' @seealso \code{\link{hg_pheno}}, \code{\link{hg_rule}}
+#' @examples
+#' ## See hgate_info
+#' @export
+hgate_rule <- function(gate, collapse = ", ", digits = 2) {
+  with(hgate_info(gate), paste0(channels, comp, round(threshold, digits), collapse = collapse))
 }
 
 #' @title subset_matrix_hg
