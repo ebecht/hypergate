@@ -230,8 +230,10 @@ hgate_info <- function(gate) {
   pars = gate$pars.history
   active_pars = gate$active_channels
   pars = pars[, active_pars, drop = FALSE]
-  pars_order = apply(pars, 2, function(x) min(which(x != x[1])))
-  pars = pars[, order(pars_order, decreasing = FALSE), drop = FALSE]
+  if (nrow(pars) > 1) {
+    pars_order = apply(pars, 2, function(x) min(which(x != x[1])))
+    pars = pars[, order(pars_order, decreasing = FALSE), drop = FALSE]
+  }
   pars = setNames(pars[nrow(pars), , drop = TRUE], colnames(pars))
   # get channel names
   channels = sub("_max", "", names(pars))
