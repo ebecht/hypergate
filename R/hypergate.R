@@ -215,7 +215,7 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
 #' @description Extract information about a hypergate return: the channels of the phenotype, the sign of the channels, the sign of the comparison, the thresholds.
 #' @param gate A hypergate object (produced by hypergate())
 #' @return A data.frame with channel, sign, comp and threshold columns
-#' @seealso \code{\link{hg_pheno}}, \code{\link{hg_rule}}
+#' @seealso \code{hg_pheno}, \code{hg_rule}
 #' @examples
 #' data(Samusik_01_subset)
 #' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
@@ -225,6 +225,7 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
 #' hgate_pheno(gate=hg)
 #' hgate_rule(gate=hg)
 #' @export
+
 hgate_info <- function(gate) {
   # retrieve threshold
   pars = gate$pars.history
@@ -253,11 +254,13 @@ hgate_info <- function(gate) {
 #' @title hgate_pheno
 #' @description Build a human readable phenotype, i.e. a combination of channels and sign (+ or -) from a hypergate return.
 #' @param gate A hypergate object (produced by hypergate())
+#' @param collapse A character string to separate the markers.
 #' @return A string representing the phenotype.
-#' @seealso \code{\link{hg_rule}}, \code{\link{hg_info}}
+#' @seealso \code{hg_rule}, \code{hg_info}
 #' @examples
 #' ## See hgate_info
 #' @export
+
 hgate_pheno <- function(gate, collapse = ", ") {
   with(hgate_info(gate), paste0(channels, sign, collapse = collapse))
 }
@@ -265,13 +268,73 @@ hgate_pheno <- function(gate, collapse = ", ") {
 #' @title hgate_info
 #' @description Extract information about a hypergate return: the channels of the phenotype, the sign of the channels, the sign of the comparison, the thresholds.
 #' @param gate A hypergate object (produced by hypergate())
+#' @param collapse A character string to separate the markers.
+#' @param digits An integer that specifies the decimal part when rounding.
 #' @return A data.frame with channel, sign, comp and threshold columns
-#' @seealso \code{\link{hg_pheno}}, \code{\link{hg_rule}}
+#' @seealso \code{hg_pheno}, \code{hg_rule}
 #' @examples
 #' ## See hgate_info
 #' @export
+
 hgate_rule <- function(gate, collapse = ", ", digits = 2) {
   with(hgate_info(gate), paste0(channels, comp, round(threshold, digits), collapse = collapse))
+}
+
+#' @title hgate_sample
+#' @description Downsample the data in order to fasten the computation and
+#'   reduce the memory usage.
+#' @param gate_vector A Categorical vector of length nrow(xp)
+#' @param level A level of gate_vector so that gate_vector == level will produce
+#'   a boolean vector identifying events of interest
+#' @param size An integer specifying the maximum number of events of interest to retain. If the count of events of interest is lower than \code{size}, than \code{size} will be set to that count.
+#' @param method A string specifying the method to balance the count of events. \code{"prop"} means proportionnality: if events of interest are sampled in a 1/10 ratio, then all others events are sampled by the same ratio. \code{"10x"} means a balance of 10 between the count events of interest and the count all others events.
+#' @return A logical vector with TRUE correspond to the events being sampled
+#' @note No replacement is applied. If there are less events in one group or the alternate than the algorithm requires, then all available events are returned.
+#' @examples
+#' # Standard procedure with downsampling
+#' data(Samusik_01_subset)
+#' xp <- Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
+#' gate_vector <- Samusik_01_subset$labels
+#' sampled <- hgate_sample(gate_vector, level=8, 100)
+#' table(sampled)
+#' table(gate_vector[sampled])
+#' xp_sampled <- xp[sampled, ]
+#' gate_vector_sampled <- gate_vector[sampled]
+#' hg <- hypergate(xp_sampled, gate_vector_sampled, level=8, delta_add=0.01)
+#' # cluster 8 consists in 122 events
+#' table(gate_vector)
+#' # Downsampling
+#' table(gate_vector[hgate_sample(gate_vector, level=8, 100)])
+#' # Downsampling reduces the alternate events
+#' table(gate_vector[hgate_sample(gate_vector, level=8, 100, "10x)])
+#' # Downsampling is limited to the maximum number of events of interest
+#' table(gate_vector[hgate_sample(gate_vector, level=8, 150)])
+#' # Downsampling is limited to the maximum number of events of interest, and
+#' # the alternate events are downsampled to a total of 10 times
+#' table(gate_vector[hgate_sample(gate_vector, level=8, 100, "10x)])
+#' @export
+hgate_sample <- function(gate_vector, level, size = 1000, method = "prop") {
+  ## Where gate_vector is the vector of clusters and level the population of interest)
+  subsample <- rep(FALSE, length(gate_vector))
+  pos_pop <- (gate_vector==level)
+  sum_pos <- sum(pos_pop)
+  sum_neg <- length(gate_vector) - sum_pos
+  pos_size <- min(size, sum_pos) ## Number of positive events to downsample to
+  subsample[pos_pop][sample.int(sum_pos, pos_size)] = TRUE
+  if (method == "prop") {
+    neg_size = round(pos_size / sum_pos * sum_neg)
+  } else if (method == "10x") {
+    neg_size = 10 * pos_size
+  } else {
+    stop(sprintf("method \"\" is not implemented.", method))
+  }
+  if (neg_size < sum_neg) {
+    idx <- sample.int(sum_neg, neg_size)
+    subsample[!pos_pop][idx] <- TRUE
+  } else {
+    subsample[!pos_pop] <- TRUE
+  }
+  subsample
 }
 
 #' @title subset_matrix_hg
