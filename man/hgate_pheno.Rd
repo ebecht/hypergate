@@ -8,6 +8,8 @@ hgate_pheno(gate, collapse = ", ")
 }
 \arguments{
 \item{gate}{A hypergate object (produced by hypergate())}
+
+\item{collapse}{A character string to separate the markers.}
 }
 \value{
 A string representing the phenotype.
@@ -19,5 +21,5 @@ Build a human readable phenotype, i.e. a combination of channels and sign (+ or 
 ## See hgate_info
 }
 \seealso{
-\code{\link{hg_rule}}, \code{\link{hg_info}}
+\code{hg_rule}, \code{hg_info}
 }

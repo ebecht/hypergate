@@ -8,6 +8,10 @@ hgate_rule(gate, collapse = ", ", digits = 2)
 }
 \arguments{
 \item{gate}{A hypergate object (produced by hypergate())}
+
+\item{collapse}{A character string to separate the markers.}
+
+\item{digits}{An integer that specifies the decimal part when rounding.}
 }
 \value{
 A data.frame with channel, sign, comp and threshold columns
@@ -19,5 +23,5 @@ Extract information about a hypergate return: the channels of the phenotype, the
 ## See hgate_info
 }
 \seealso{
-\code{\link{hg_pheno}}, \code{\link{hg_rule}}
+\code{hg_pheno}, \code{hg_rule}
 }

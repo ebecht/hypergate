@@ -25,5 +25,5 @@ hgate_pheno(gate=hg)
 hgate_rule(gate=hg)
 }
 \seealso{
-\code{\link{hg_pheno}}, \code{\link{hg_rule}}
+\code{hg_pheno}, \code{hg_rule}
 }
