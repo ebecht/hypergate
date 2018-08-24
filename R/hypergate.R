@@ -1280,4 +1280,4 @@ NULL
 NULL
 #' @importFrom stats setNames
 NULL
-hg_#' @importFrom utils tail
+#' @importFrom utils tail
