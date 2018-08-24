@@ -306,13 +306,14 @@ hgate_rule <- function(gate, collapse = ", ", digits = 2) {
 #' # Downsampling
 #' table(gate_vector[hgate_sample(gate_vector, level=8, 100)])
 #' # Downsampling reduces the alternate events
-#' table(gate_vector[hgate_sample(gate_vector, level=8, 100, "10x)])
+#' table(gate_vector[hgate_sample(gate_vector, level=8, 100, "10x")])
 #' # Downsampling is limited to the maximum number of events of interest
 #' table(gate_vector[hgate_sample(gate_vector, level=8, 150)])
 #' # Downsampling is limited to the maximum number of events of interest, and
 #' # the alternate events are downsampled to a total of 10 times
-#' table(gate_vector[hgate_sample(gate_vector, level=8, 100, "10x)])
+#' table(gate_vector[hgate_sample(gate_vector, level=8, 150, "10x")])
 #' @export
+
 hgate_sample <- function(gate_vector, level, size = 1000, method = "prop") {
   ## Where gate_vector is the vector of clusters and level the population of interest)
   subsample <- rep(FALSE, length(gate_vector))
