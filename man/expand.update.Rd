@@ -6,8 +6,9 @@
 \usage{
 expand.update(expand.object, pars = envir$pars, xp_pos = envir$xp_pos,
   xp_neg = envir$xp_neg, state_pos = envir$state_pos,
-  state_neg = envir$state_neg, b_pos = envir$b_pos, b_neg = envir$b_neg,
-  n = envir$n, TP = envir$TP, TN = envir$TN, envir = parent.frame())
+  state_neg = envir$state_neg, b_pos = envir$b_pos,
+  b_neg = envir$b_neg, n = envir$n, TP = envir$TP, TN = envir$TN,
+  envir = parent.frame())
 }
 \arguments{
 \item{expand.object}{output of the expand function}

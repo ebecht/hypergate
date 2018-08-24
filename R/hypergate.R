@@ -242,7 +242,7 @@ hgate_info <- function(gate) {
   dir.sign = rep('+', length(pars))
   dir.sign[grep("_max", names(pars))] = '-'
   # comparison sign
-  dir.comp = rep(' > ', length(pars))
+  dir.comp = rep(' >= ', length(pars))
   dir.comp[grep("_max", names(pars))] = ' <= '
   # all together
   data.frame(
@@ -1281,4 +1281,3 @@ NULL
 #' @importFrom stats setNames
 NULL
 #' @importFrom utils tail
-NULL

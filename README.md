@@ -243,3 +243,53 @@ plot_gating_strategy(gate = hg_output_polished, xp = Samusik_01_subset$xp_src[,
 ```
 
 ![Final output](figure/unnamed-chunk-21-1.png)
+
+### Human-readable output
+
+Thanks to a nice contribution for SamGG on github, there are three functions that make the outputs more readable:
+
+
+```r
+hgate_pheno(hg_output)
+```
+
+```
+## [1] "SiglecF+, cKit-, Ly6C-"
+```
+
+```r
+hgate_rule(hg_output)
+```
+
+```
+## [1] "SiglecF >= 2.21, cKit <= 1.77, Ly6C <= 2.98"
+```
+
+```r
+hgate_info(hg_output)
+```
+
+```
+##             channels sign comp threshold
+## SiglecF_min  SiglecF    +  >=   2.208221
+## cKit_max        cKit    -  <=   1.770901
+## Ly6C_max        Ly6C    -  <=   2.983523
+```
+
+## Final notes
+
+Some comments about potential questions on your own projects (raised by QBarbier):
+
+### Which channels to use as input?
+Anything that would be relevant for a gating strategy should be used as an input. So usually any phenotypic channel would be included. If you know that you would not use certain parameters on subsequent experiments (for instance if the staining is intracellular and you plan to sort a live population and thus cannot permeabilize your cells), you should exclude the corresponding channels. I usually do not use channels that were used in pre-gating steps (e.g. CD45 for immune cells). Finally, if you plan to use flow cytometry and use hypergate on a CyTOF dataset, you probably want to discard the Cell_length channel.
+
+### How big can the input matrix be?
+It depends on how much RAM your computer has. If that is an issue I suggest downsampling to (e.g.) 1000 positive cells and a corresponding number of negative cells. I cannot show an example in this vignette as the example dataset has to be kept small. The following code should however achieve this :
+
+```
+subsample=rep(FALSE,nrow(xp)) ## Where xp is your input matrix
+positive_population=gate_vector==level ## Where gate_vector is the vector of clusters and level the population of interest)
+M=min(1000,sum(positive_population)) ## Number of positive events to downsample to
+subsample[positive_population][sample(1:sum(positive_population),M)]=TRUE
+subsample[!positive_population][sample(1:sum(!positive_population),round(M/sum(positive_population)*sum(!positive_population)))]=TRUE
+```
