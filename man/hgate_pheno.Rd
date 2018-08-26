@@ -4,10 +4,10 @@
 \alias{hgate_pheno}
 \title{hgate_pheno}
 \usage{
-hgate_pheno(gate, collapse = ", ")
+hgate_pheno(hgate, collapse = ", ")
 }
 \arguments{
-\item{gate}{A hypergate object (produced by hypergate())}
+\item{hgate}{A hypergate object (produced by hypergate())}
 
 \item{collapse}{A character string to separate the markers.}
 }
@@ -15,7 +15,8 @@ hgate_pheno(gate, collapse = ", ")
 A string representing the phenotype.
 }
 \description{
-Build a human readable phenotype, i.e. a combination of channels and sign (+ or -) from a hypergate return.
+Build a human readable phenotype, i.e. a combination of channels
+  and sign (+ or -) from a hypergate return.
 }
 \examples{
 ## See hgate_info

@@ -212,24 +212,37 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
 }
 
 #' @title hgate_info
-#' @description Extract information about a hypergate return: the channels of the phenotype, the sign of the channels, the sign of the comparison, the thresholds.
-#' @param gate A hypergate object (produced by hypergate())
-#' @return A data.frame with channel, sign, comp and threshold columns
+#' @description Extract information about a hypergate return: the channels of
+#'   the phenotype, the sign of the channels, the sign of the comparison, the
+#'   thresholds. The function could also compute the Fscores if the xp,
+#'   gate_vector and level parameters are given.
+#' @param hgate A hypergate object (produced by hypergate())
+#' @param xp The expression matrix from which the 'hgate' parameter originates
+#' @param gate_vector Categorical data from which the 'hgate' parameter
+#'   originates
+#' @param level Level of gate_vector identifying the population of interest
+#' @param beta Beta to weight precision (low beta) or recall (high beta) more
+#' @return A data.frame with channel, sign, comp and threshold columns, and
+#'   optionnally Fscore1d and Fscore
 #' @seealso \code{hg_pheno}, \code{hg_rule}
 #' @examples
 #' data(Samusik_01_subset)
 #' xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
 #' gate_vector=Samusik_01_subset$labels
 #' hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
-#' hgate_info(gate=hg)
-#' hgate_pheno(gate=hg)
-#' hgate_rule(gate=hg)
+#' hgate_info(hgate=hg)
+#' hgate_pheno(hgate=hg)
+#' hgate_rule(hgate=hg)
 #' @export
 
-hgate_info <- function(gate) {
+hgate_info <- function(hgate, xp, gate_vector, level, beta = 1) {
+  miss = missing(xp) + missing(level) + missing(level)
+  if (miss == 1 || miss == 2) {
+    warning("at least one parameter is missing in order to compute scores.")
+  }
   # retrieve threshold
-  pars = gate$pars.history
-  active_pars = gate$active_channels
+  pars = hgate$pars.history
+  active_pars = hgate$active_channels
   pars = pars[, active_pars, drop = FALSE]
   if (nrow(pars) > 1) {
     pars_order = apply(pars, 2, function(x) min(which(x != x[1])))
@@ -246,14 +259,41 @@ hgate_info <- function(gate) {
   dir.comp = rep(' >= ', length(pars))
   dir.comp[grep("_max", names(pars))] = ' <= '
   # all together
-  data.frame(
+  res = data.frame(
     channels, sign = dir.sign, comp = dir.comp, threshold = pars
   )
+  # scores
+  if (miss == 0) {
+    
+    w = !is.na(gate_vector)
+    xp = xp[w,,drop=F]
+    gate_vector = gate_vector[w]
+    truce = gate_vector==level
+    
+    ##Loop over parameters
+    active_events = rep(TRUE, nrow(xp))
+    Fscore = Fscore1D = c()
+    for(i in seq(length(pars))) {
+      # events for the current 1D gate
+      if(dir.comp[i] == ' >= '){
+        test1D = xp[,channels[i]] >= pars[i]
+      } else {
+        test1D = xp[,channels[i]] <= pars[i]
+      }
+      Fscore1D = c(Fscore1D, signif(F_beta(truce, test1D, beta = beta), 4))
+      # update active events
+      active_events = active_events & test1D
+      Fscore = c(Fscore, signif(F_beta(truce, active_events, beta = beta), 4))
+    }
+    res = cbind(res, Fscore1D, Fscore)
+  }
+  res
 }
 
 #' @title hgate_pheno
-#' @description Build a human readable phenotype, i.e. a combination of channels and sign (+ or -) from a hypergate return.
-#' @param gate A hypergate object (produced by hypergate())
+#' @description Build a human readable phenotype, i.e. a combination of channels
+#'   and sign (+ or -) from a hypergate return.
+#' @param hgate A hypergate object (produced by hypergate())
 #' @param collapse A character string to separate the markers.
 #' @return A string representing the phenotype.
 #' @seealso \code{hg_rule}, \code{hg_info}
@@ -261,13 +301,14 @@ hgate_info <- function(gate) {
 #' ## See hgate_info
 #' @export
 
-hgate_pheno <- function(gate, collapse = ", ") {
-  with(hgate_info(gate), paste0(channels, sign, collapse = collapse))
+hgate_pheno <- function(hgate, collapse = ", ") {
+  with(hgate_info(hgate), paste0(channels, sign, collapse = collapse))
 }
 
-#' @title hgate_info
-#' @description Extract information about a hypergate return: the channels of the phenotype, the sign of the channels, the sign of the comparison, the thresholds.
-#' @param gate A hypergate object (produced by hypergate())
+#' @title hgate_rule
+#' @description Build a human readable rule i.e. a combination of channels, sign
+#'   of comparison and threshold.
+#' @param hgate A hypergate object (produced by hypergate())
 #' @param collapse A character string to separate the markers.
 #' @param digits An integer that specifies the decimal part when rounding.
 #' @return A data.frame with channel, sign, comp and threshold columns
@@ -276,8 +317,8 @@ hgate_pheno <- function(gate, collapse = ", ") {
 #' ## See hgate_info
 #' @export
 
-hgate_rule <- function(gate, collapse = ", ", digits = 2) {
-  with(hgate_info(gate), paste0(channels, comp, round(threshold, digits), collapse = collapse))
+hgate_rule <- function(hgate, collapse = ", ", digits = 2) {
+  with(hgate_info(hgate), paste0(channels, comp, round(threshold, digits), collapse = collapse))
 }
 
 #' @title hgate_sample
@@ -286,10 +327,18 @@ hgate_rule <- function(gate, collapse = ", ", digits = 2) {
 #' @param gate_vector A Categorical vector of length nrow(xp)
 #' @param level A level of gate_vector so that gate_vector == level will produce
 #'   a boolean vector identifying events of interest
-#' @param size An integer specifying the maximum number of events of interest to retain. If the count of events of interest is lower than \code{size}, than \code{size} will be set to that count.
-#' @param method A string specifying the method to balance the count of events. \code{"prop"} means proportionnality: if events of interest are sampled in a 1/10 ratio, then all others events are sampled by the same ratio. \code{"10x"} means a balance of 10 between the count events of interest and the count all others events.
+#' @param size An integer specifying the maximum number of events of interest to
+#'   retain. If the count of events of interest is lower than \code{size}, than
+#'   \code{size} will be set to that count.
+#' @param method A string specifying the method to balance the count of events.
+#'   \code{"prop"} means proportionnality: if events of interest are sampled in
+#'   a 1/10 ratio, then all others events are sampled by the same ratio.
+#'   \code{"10x"} means a balance of 10 between the count events of interest and
+#'   the count all others events.
 #' @return A logical vector with TRUE correspond to the events being sampled
-#' @note No replacement is applied. If there are less events in one group or the alternate than the algorithm requires, then all available events are returned.
+#' @note No replacement is applied. If there are less events in one group or the
+#'   alternate than the algorithm requires, then all available events are
+#'   returned.
 #' @examples
 #' # Standard procedure with downsampling
 #' data(Samusik_01_subset)

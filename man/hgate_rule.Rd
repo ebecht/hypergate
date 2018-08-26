@@ -2,12 +2,12 @@
 % Please edit documentation in R/hypergate.R
 \name{hgate_rule}
 \alias{hgate_rule}
-\title{hgate_info}
+\title{hgate_rule}
 \usage{
-hgate_rule(gate, collapse = ", ", digits = 2)
+hgate_rule(hgate, collapse = ", ", digits = 2)
 }
 \arguments{
-\item{gate}{A hypergate object (produced by hypergate())}
+\item{hgate}{A hypergate object (produced by hypergate())}
 
 \item{collapse}{A character string to separate the markers.}
 
@@ -17,7 +17,8 @@ hgate_rule(gate, collapse = ", ", digits = 2)
 A data.frame with channel, sign, comp and threshold columns
 }
 \description{
-Extract information about a hypergate return: the channels of the phenotype, the sign of the channels, the sign of the comparison, the thresholds.
+Build a human readable rule i.e. a combination of channels, sign
+  of comparison and threshold.
 }
 \examples{
 ## See hgate_info

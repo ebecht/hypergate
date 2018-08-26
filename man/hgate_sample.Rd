@@ -12,9 +12,15 @@ hgate_sample(gate_vector, level, size = 1000, method = "prop")
 \item{level}{A level of gate_vector so that gate_vector == level will produce
 a boolean vector identifying events of interest}
 
-\item{size}{An integer specifying the maximum number of events of interest to retain. If the count of events of interest is lower than \code{size}, than \code{size} will be set to that count.}
+\item{size}{An integer specifying the maximum number of events of interest to
+retain. If the count of events of interest is lower than \code{size}, than
+\code{size} will be set to that count.}
 
-\item{method}{A string specifying the method to balance the count of events. \code{"prop"} means proportionnality: if events of interest are sampled in a 1/10 ratio, then all others events are sampled by the same ratio. \code{"10x"} means a balance of 10 between the count events of interest and the count all others events.}
+\item{method}{A string specifying the method to balance the count of events.
+\code{"prop"} means proportionnality: if events of interest are sampled in
+a 1/10 ratio, then all others events are sampled by the same ratio.
+\code{"10x"} means a balance of 10 between the count events of interest and
+the count all others events.}
 }
 \value{
 A logical vector with TRUE correspond to the events being sampled
@@ -24,7 +30,9 @@ Downsample the data in order to fasten the computation and
   reduce the memory usage.
 }
 \note{
-No replacement is applied. If there are less events in one group or the alternate than the algorithm requires, then all available events are returned.
+No replacement is applied. If there are less events in one group or the
+  alternate than the algorithm requires, then all available events are
+  returned.
 }
 \examples{
 # Standard procedure with downsampling
