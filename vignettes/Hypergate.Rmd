@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set(fig.pos = 'H',tidy.opts=list(width.cutoff=60),tidy=TRUE)
+knitr::opts_chunk$set(fig.pos = 'H',tidy.opts=list(width.cutoff=60),tidy=TRUE,fig.path="fig/")
 ```
 
 ```{r, include=FALSE}
