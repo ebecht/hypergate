@@ -4,26 +4,39 @@
 \alias{hgate_info}
 \title{hgate_info}
 \usage{
-hgate_info(gate)
+hgate_info(hgate, xp, gate_vector, level, beta = 1)
 }
 \arguments{
-\item{gate}{A hypergate object (produced by hypergate())}
+\item{hgate}{A hypergate object (produced by hypergate())}
+
+\item{xp}{The expression matrix from which the 'hgate' parameter originates}
+
+\item{gate_vector}{Categorical data from which the 'hgate' parameter
+originates}
+
+\item{level}{Level of gate_vector identifying the population of interest}
+
+\item{beta}{Beta to weight precision (low beta) or recall (high beta) more}
 }
 \value{
-A data.frame with channel, sign, comp and threshold columns
+A data.frame with channel, sign, comp and threshold columns, and
+  optionnally Fscore1d and Fscore
 }
 \description{
-Extract information about a hypergate return: the channels of the phenotype, the sign of the channels, the sign of the comparison, the thresholds.
+Extract information about a hypergate return: the channels of
+  the phenotype, the sign of the channels, the sign of the comparison, the
+  thresholds. The function could also compute the Fscores if the xp,
+  gate_vector and level parameters are given.
 }
 \examples{
 data(Samusik_01_subset)
 xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
 gate_vector=Samusik_01_subset$labels
 hg=hypergate(xp=xp,gate_vector=gate_vector,level=23,delta_add=0.01)
-hgate_info(gate=hg)
-hgate_pheno(gate=hg)
-hgate_rule(gate=hg)
+hgate_info(hgate=hg)
+hgate_pheno(hgate=hg)
+hgate_rule(hgate=hg)
 }
 \seealso{
-\code{\link{hg_pheno}}, \code{\link{hg_rule}}
+\code{hg_pheno}, \code{hg_rule}
 }
