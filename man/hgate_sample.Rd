@@ -7,7 +7,8 @@
 hgate_sample(gate_vector, level, size = 1000, method = "prop")
 }
 \arguments{
-\item{gate_vector}{A Categorical vector of length nrow(xp)}
+\item{gate_vector}{A Categorical vector whose length equals the number of
+rows of the matrix to sample (nrow(xp))}
 
 \item{level}{A level of gate_vector so that gate_vector == level will produce
 a boolean vector identifying events of interest}
@@ -20,10 +21,13 @@ retain. If the count of events of interest is lower than \code{size}, than
 \code{"prop"} means proportionnality: if events of interest are sampled in
 a 1/10 ratio, then all others events are sampled by the same ratio.
 \code{"10x"} means a balance of 10 between the count events of interest and
-the count all others events.}
+the count all others events. \code{"ceil"} means a uniform sampling no more
+than the specified size for each level of the gate_vector. \code{level} is
+unused in that method.}
 }
 \value{
-A logical vector with TRUE correspond to the events being sampled
+A logical vector with TRUE correspond to the events being sampled, ie
+  kept to further analysis
 }
 \description{
 Downsample the data in order to fasten the computation and
@@ -32,7 +36,7 @@ Downsample the data in order to fasten the computation and
 \note{
 No replacement is applied. If there are less events in one group or the
   alternate than the algorithm requires, then all available events are
-  returned.
+  returned. NA values in gate_vector are not sampled, ie ignored.
 }
 \examples{
 # Standard procedure with downsampling
@@ -56,4 +60,33 @@ table(gate_vector[hgate_sample(gate_vector, level=8, 150)])
 # Downsampling is limited to the maximum number of events of interest, and
 # the alternate events are downsampled to a total of 10 times
 table(gate_vector[hgate_sample(gate_vector, level=8, 150, "10x")])
+# More details about sampling
+# Convert -1 to NA, NA are not sampled
+gate_vector[gate_vector==-1] = NA
+gate_vector = factor(gate_vector)
+table(gate_vector, useNA = "alw")
+#
+# target size = 100 whereas initial freq is 122 for pop 8
+smp.prop = hgate_sample(gate_vector, level = 8, size = 100, method = "prop")
+smp.10x  = hgate_sample(gate_vector, level = 8, size = 100, method = "10x")
+smp.ceil = hgate_sample(gate_vector, size = 10, method = "ceil")
+table(smp.prop)
+table(smp.10x)
+table(smp.ceil)
+rbind(raw = table(gate_vector),
+      prop = table(gate_vector[smp.prop]),
+      `10x` = table(gate_vector[smp.10x]),
+      ceil = table(gate_vector[smp.ceil]))
+#
+# target size = 30 whereas initial freq is 25 for pop 14
+smp.prop = hgate_sample(gate_vector, level = 14, size = 30, method = "prop")
+smp.10x  = hgate_sample(gate_vector, level = 14, size = 30, method = "10x")
+table(smp.prop)
+table(smp.10x)
+rbind(raw = table(gate_vector),
+      prop = table(gate_vector[smp.prop]),
+      `10x` = table(gate_vector[smp.10x]))
+# prop returns original data, because target size ids larger than initial freq
+# 10x  returns sampled data according to initial freq, such as the total amount
+# of other events equals 10x initial freq of pop 14
 }

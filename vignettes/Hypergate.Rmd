@@ -238,6 +238,14 @@ Thanks to a nice contribution for SamGG on github, there are three functions tha
 hgate_pheno(hg_output)
 hgate_rule(hg_output)
 hgate_info(hg_output)
+# Fscores could be retrieved when the same parameters given to hypergate() are given to hgate_info():
+hg_out_info = hgate_info(hg_output,
+	xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels],
+	gate_vector=gate_vector,
+	level=1)
+hg_out_info
+# and formatted readily
+paste0(hg_out_info[,"Fscore"], collapse = ", ")
 ```
 
 ## Final notes

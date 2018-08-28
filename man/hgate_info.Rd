@@ -9,18 +9,22 @@ hgate_info(hgate, xp, gate_vector, level, beta = 1)
 \arguments{
 \item{hgate}{A hypergate object (produced by hypergate())}
 
-\item{xp}{The expression matrix from which the 'hgate' parameter originates}
+\item{xp}{The expression matrix from which the 'hgate' parameter originates,
+needed for Fscore computation}
 
 \item{gate_vector}{Categorical data from which the 'hgate' parameter
-originates}
+originates, needed for Fscore computation}
 
-\item{level}{Level of gate_vector identifying the population of interest}
+\item{level}{Level of gate_vector identifying the population of interest,
+needed for Fscore computation}
 
-\item{beta}{Beta to weight precision (low beta) or recall (high beta) more}
+\item{beta}{Beta to weight precision (low beta) or recall (high beta) more,
+needed for Fscore computation}
 }
 \value{
 A data.frame with channel, sign, comp and threshold columns, and
-  optionnally Fscore1d and Fscore
+  optionnally Fscore1d and Fscore. Fscores are computed if xp, gate_vector
+  and level are passed to the function.
 }
 \description{
 Extract information about a hypergate return: the channels of

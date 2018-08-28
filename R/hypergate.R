@@ -217,13 +217,17 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
 #'   thresholds. The function could also compute the Fscores if the xp,
 #'   gate_vector and level parameters are given.
 #' @param hgate A hypergate object (produced by hypergate())
-#' @param xp The expression matrix from which the 'hgate' parameter originates
+#' @param xp The expression matrix from which the 'hgate' parameter originates,
+#'   needed for Fscore computation
 #' @param gate_vector Categorical data from which the 'hgate' parameter
-#'   originates
-#' @param level Level of gate_vector identifying the population of interest
-#' @param beta Beta to weight precision (low beta) or recall (high beta) more
+#'   originates, needed for Fscore computation
+#' @param level Level of gate_vector identifying the population of interest,
+#'   needed for Fscore computation
+#' @param beta Beta to weight precision (low beta) or recall (high beta) more,
+#'   needed for Fscore computation
 #' @return A data.frame with channel, sign, comp and threshold columns, and
-#'   optionnally Fscore1d and Fscore
+#'   optionnally Fscore1d and Fscore. Fscores are computed if xp, gate_vector
+#'   and level are passed to the function.
 #' @seealso \code{hg_pheno}, \code{hg_rule}
 #' @examples
 #' data(Samusik_01_subset)
@@ -324,7 +328,8 @@ hgate_rule <- function(hgate, collapse = ", ", digits = 2) {
 #' @title hgate_sample
 #' @description Downsample the data in order to fasten the computation and
 #'   reduce the memory usage.
-#' @param gate_vector A Categorical vector of length nrow(xp)
+#' @param gate_vector A Categorical vector whose length equals the number of
+#'   rows of the matrix to sample (nrow(xp))
 #' @param level A level of gate_vector so that gate_vector == level will produce
 #'   a boolean vector identifying events of interest
 #' @param size An integer specifying the maximum number of events of interest to
@@ -334,11 +339,14 @@ hgate_rule <- function(hgate, collapse = ", ", digits = 2) {
 #'   \code{"prop"} means proportionnality: if events of interest are sampled in
 #'   a 1/10 ratio, then all others events are sampled by the same ratio.
 #'   \code{"10x"} means a balance of 10 between the count events of interest and
-#'   the count all others events.
-#' @return A logical vector with TRUE correspond to the events being sampled
+#'   the count all others events. \code{"ceil"} means a uniform sampling no more
+#'   than the specified size for each level of the gate_vector. \code{level} is
+#'   unused in that method.
+#' @return A logical vector with TRUE correspond to the events being sampled, ie
+#'   kept to further analysis
 #' @note No replacement is applied. If there are less events in one group or the
 #'   alternate than the algorithm requires, then all available events are
-#'   returned.
+#'   returned. NA values in gate_vector are not sampled, ie ignored.
 #' @examples
 #' # Standard procedure with downsampling
 #' data(Samusik_01_subset)
@@ -361,16 +369,71 @@ hgate_rule <- function(hgate, collapse = ", ", digits = 2) {
 #' # Downsampling is limited to the maximum number of events of interest, and
 #' # the alternate events are downsampled to a total of 10 times
 #' table(gate_vector[hgate_sample(gate_vector, level=8, 150, "10x")])
+#' # More details about sampling
+#' # Convert -1 to NA, NA are not sampled
+#' gate_vector[gate_vector==-1] = NA
+#' gate_vector = factor(gate_vector)
+#' table(gate_vector, useNA = "alw")
+#' #
+#' # target size = 100 whereas initial freq is 122 for pop 8
+#' smp.prop = hgate_sample(gate_vector, level = 8, size = 100, method = "prop")
+#' smp.10x  = hgate_sample(gate_vector, level = 8, size = 100, method = "10x")
+#' smp.ceil = hgate_sample(gate_vector, size = 10, method = "ceil")
+#' table(smp.prop)
+#' table(smp.10x)
+#' table(smp.ceil)
+#' rbind(raw = table(gate_vector),
+#'       prop = table(gate_vector[smp.prop]),
+#'       `10x` = table(gate_vector[smp.10x]),
+#'       ceil = table(gate_vector[smp.ceil]))
+#' #
+#' # target size = 30 whereas initial freq is 25 for pop 14
+#' smp.prop = hgate_sample(gate_vector, level = 14, size = 30, method = "prop")
+#' smp.10x  = hgate_sample(gate_vector, level = 14, size = 30, method = "10x")
+#' table(smp.prop)
+#' table(smp.10x)
+#' rbind(raw = table(gate_vector),
+#'       prop = table(gate_vector[smp.prop]),
+#'       `10x` = table(gate_vector[smp.10x]))
+#' # prop returns original data, because target size ids larger than initial freq
+#' # 10x  returns sampled data according to initial freq, such as the total amount
+#' # of other events equals 10x initial freq of pop 14
 #' @export
 
 hgate_sample <- function(gate_vector, level, size = 1000, method = "prop") {
   ## Where gate_vector is the vector of clusters and level the population of interest)
   subsample <- rep(FALSE, length(gate_vector))
-  pos_pop <- (gate_vector==level)
+  # multi-class methods
+  if (method == "ceil") {
+    if (!missing(level))
+      warning(sprintf("level is ignored when method is %s", method))
+    for (level in unique(gate_vector)) {
+      if (is.na(level)) next()
+      nna_pop <- !is.na(gate_vector)
+      pos_pop <- nna_pop & (gate_vector==level)
+      sum_pos <- sum(pos_pop, na.rm = TRUE)
+      if (sum_pos <= size) {
+        subsample[pos_pop] = TRUE
+      } else {
+        subsample[pos_pop][sample.int(sum_pos, size)] = TRUE
+      }
+    }
+    return(subsample)
+  }
+  # pos vs neg methods
+  nna_pop <- !is.na(gate_vector)
+  pos_pop <- nna_pop & (gate_vector==level)
   sum_pos <- sum(pos_pop)
-  sum_neg <- length(gate_vector) - sum_pos
-  pos_size <- min(size, sum_pos) ## Number of positive events to downsample to
-  subsample[pos_pop][sample.int(sum_pos, pos_size)] = TRUE
+  # downsample positive population
+  if (sum_pos <= size) {
+    subsample[pos_pop] = TRUE
+    pos_size = sum_pos
+  } else {
+    subsample[pos_pop][sample.int(sum_pos, size)] = TRUE
+    pos_size = size
+  }
+  # downsample positive population
+  sum_neg <- sum(nna_pop) - sum_pos
   if (method == "prop") {
     neg_size = round(pos_size / sum_pos * sum_neg)
   } else if (method == "10x") {
@@ -378,11 +441,12 @@ hgate_sample <- function(gate_vector, level, size = 1000, method = "prop") {
   } else {
     stop(sprintf("method \"\" is not implemented.", method))
   }
+  neg_pop <- nna_pop & (gate_vector!=level)
   if (neg_size < sum_neg) {
     idx <- sample.int(sum_neg, neg_size)
-    subsample[!pos_pop][idx] <- TRUE
+    subsample[neg_pop][idx] <- TRUE
   } else {
-    subsample[!pos_pop] <- TRUE
+    subsample[neg_pop] <- TRUE
   }
   subsample
 }
