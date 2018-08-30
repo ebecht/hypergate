@@ -238,7 +238,7 @@ Thanks to a nice contribution for SamGG on github, there are three functions tha
 hgate_pheno(hg_output)
 hgate_rule(hg_output)
 hgate_info(hg_output)
-# Fscores could be retrieved when the same parameters given to hypergate() are given to hgate_info():
+# Fscores can be retrieved when the same parameters given to hypergate() are given to hgate_info():
 hg_out_info = hgate_info(hg_output,
 	xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels],
 	gate_vector=gate_vector,
@@ -256,16 +256,16 @@ Some comments about potential questions on your own projects (raised by QBarbier
 Anything that would be relevant for a gating strategy should be used as an input. So usually any phenotypic channel would be included. If you know that you would not use certain parameters on subsequent experiments (for instance if the staining is intracellular and you plan to sort a live population and thus cannot permeabilize your cells), you should exclude the corresponding channels. I usually do not use channels that were used in pre-gating steps (e.g. CD45 for immune cells). Finally, if you plan to use flow cytometry and use hypergate on a CyTOF dataset, you probably want to discard the Cell_length channel.
 
 ### How big can the input matrix be?
-It depends on how much RAM your computer has. If that is an issue I suggest downsampling to (e.g.) 1000 positive cells and a corresponding number of negative cells. I cannot show an example in this vignette as the example dataset has to be kept small. The following code should however achieve this :
+It depends on how much RAM your computer has. If that is an issue I suggest downsampling to (e.g.) 1000 positive cells and a corresponding number of negative cells. The `hgate_sample` function can help you achieve this:
 
-```{r, eval=FALSE}
+```{r}
 set.seed(123) ## Makes the subsampling reproducible
-subsample=rep(FALSE,nrow(xp)) ## Where xp is your input matrix
-positive_population=gate_vector==level ## Where gate_vector is the vector of clusters and level the population of interest)
-M=min(1000,sum(positive_population)) ## Number of positive events to downsample to
-subsample[positive_population][sample(1:sum(positive_population),M)]=TRUE
-subsample[!positive_population][sample(1:sum(!positive_population),round(M/sum(positive_population)*sum(!positive_population)))]=TRUE
-tab=table(ifelse(subsample,"In","Out"),ifelse(positive_population,"Positive pop.","Negative pop."))
+gate_vector=Samusik_01_subset$labels
+subsample=hgate_sample(gate_vector=gate_vector,level=5,size=100) ## Subsample 100 events from population #5 (Classical monocytes), and a corresponding number of negative events
+tab=table(ifelse(subsample,"In","Out"),ifelse(Samusik_01_subset$labels==5,"Positive pop.","Negative pop."))
 tab[1,]/colSums(tab) ## Fraction of subsampled events for positive and negative populations
-hg=hypergate(xp=xp[subsample,],gate_vector=gate_vector[subsample],level=level) ## Runs hypergate on a subsample of the input matrix
+xp=Samusik_01_subset$xp_src[,Samusik_01_subset$regular_channels]
+hg=hypergate(xp=xp[subsample,],gate_vector=gate_vector[subsample],level=5) ## Runs hypergate on a subsample of the input matrix
+gating_heldout=subset_matrix_hg(hg,xp[!subsample,]) ## Applies the gate to the held-out data
+table(ifelse(gating_heldout,"Gated in","Gated out"),ifelse(Samusik_01_subset$labels[!subsample]==5,"Positive pop.","Negative pop."))
 ```

@@ -18,12 +18,12 @@ originates, needed for Fscore computation}
 \item{level}{Level of gate_vector identifying the population of interest,
 needed for Fscore computation}
 
-\item{beta}{Beta to weight precision (low beta) or recall (high beta) more,
+\item{beta}{Beta to weight purity (low beta) or yield (high beta) more,
 needed for Fscore computation}
 }
 \value{
 A data.frame with channel, sign, comp and threshold columns, and
-  optionnally Fscore1d and Fscore. Fscores are computed if xp, gate_vector
+  optionnally deltaF (score deterioration when parameter is ignored),Fscore1d (F_value when using only this parameter) and Fscore (F score when all parameters up to this one are included). Fscores are computed if xp, gate_vector
   and level are passed to the function.
 }
 \description{

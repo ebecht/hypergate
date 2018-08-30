@@ -78,7 +78,7 @@ plot(Samusik_01_subset$tsne, pch = 16, cex = 0.5, col = ifelse(gate_vector ==
 polygon(pol, lty = 2)
 ```
 
-![Manual selection of a cluster on a 2D t-SNE](figure/unnamed-chunk-7-1.png)
+![Manual selection of a cluster on a 2D t-SNE](vignettes/unnamed-chunk-7-1.png)
 
 #### Clustering
 
@@ -106,7 +106,7 @@ plot(Samusik_01_subset$tsne, col = ifelse(cluster_labels == 20,
     "firebrick3", "lightsteelblue"), pch = 16, cex = 0.5)
 ```
 
-![Selection of a cluster from a clustering algorithm output](figure/unnamed-chunk-10-1.png)
+![Selection of a cluster from a clustering algorithm output](vignettes/unnamed-chunk-10-1.png)
 
 ## Running Hypergate
 
@@ -139,8 +139,8 @@ table(ifelse(gating_predicted, "Gated-in", "Gated-out"), ifelse(gate_vector ==
 
 |          | Events of interest| Others|
 |:---------|------------------:|------:|
-|Gated-out |                 10|   1874|
 |Gated-in  |                116|      0|
+|Gated-out |                 10|   1874|
 
 Another option, which offers more low-level control, is to examine for each datapoint whether they pass the threshold for each parameter. The function to obtain such a boolean matrix is ```boolmat```. Here our gating strategy specifies *SiglecF+cKit-Ly6C-*. We would thus obtain a 3-columns x 2000 (the number of events) rows
 
@@ -186,7 +186,7 @@ plot_gating_strategy(gate = hg_output, xp = Samusik_01_subset$xp_src[,
     level = 1, highlight = "firebrick3")
 ```
 
-![Gating strategy](figure/unnamed-chunk-17-1.png)![Gating strategy](figure/unnamed-chunk-17-2.png)
+![Gating strategy](vignettes/unnamed-chunk-17-1.png)![Gating strategy](vignettes/unnamed-chunk-17-2.png)
 
 Another important point to consider is how the F$\beta$-score increases with each added channel. This gives an idea of how many channels are required to reach a close-to-optimal gating strategy.
 
@@ -202,7 +202,7 @@ barplot(rev(f_values_vs_number_of_parameters), names.arg = rev(c("Initialization
     mar = c(10, 4, 1, 1), horiz = TRUE, xlab = "Cumulative F1-score")
 ```
 
-![F1-score obtained during optimization when adding parameters](figure/unnamed-chunk-18-1.png)
+![F1-score obtained during optimization when adding parameters](vignettes/unnamed-chunk-18-1.png)
 
 This graph tells us that the biggest increase is by far due to SiglecF+, while the lowest is due to Ly6C-.
 
@@ -219,7 +219,7 @@ barplot(contributions, las = 3, mar = c(10, 4, 1, 1), horiz = TRUE,
     xlab = "F1-score deterioration when the parameter is ignored")
 ```
 
-![Contribution of each parameter to the output](figure/unnamed-chunk-19-1.png)
+![Contribution of each parameter to the output](vignettes/unnamed-chunk-19-1.png)
 
 ### Reoptimize strategy
 
@@ -242,7 +242,7 @@ plot_gating_strategy(gate = hg_output_polished, xp = Samusik_01_subset$xp_src[,
     level = 1, highlight = "firebrick3")
 ```
 
-![Final output](figure/unnamed-chunk-21-1.png)
+![Final output](vignettes/unnamed-chunk-21-1.png)
 
 ### Human-readable output
 
@@ -276,6 +276,31 @@ hgate_info(hg_output)
 ## Ly6C_max        Ly6C    -  <=   2.983523
 ```
 
+```r
+# Fscores can be retrieved when the same parameters given to
+# hypergate() are given to hgate_info():
+hg_out_info = hgate_info(hg_output, xp = Samusik_01_subset$xp_src[, 
+    Samusik_01_subset$regular_channels], gate_vector = gate_vector, 
+    level = 1)
+hg_out_info
+```
+
+```
+##             channels sign comp threshold     deltaF Fscore1D Fscore
+## SiglecF_min  SiglecF    +  >=   2.208221 0.76351765   0.8125 0.8125
+## cKit_max        cKit    -  <=   1.770901 0.07988981   0.1294 0.9360
+## Ly6C_max        Ly6C    -  <=   2.983523 0.02267769   0.1809 0.9587
+```
+
+```r
+# and formatted readily
+paste0(hg_out_info[, "Fscore"], collapse = ", ")
+```
+
+```
+## [1] "0.8125, 0.936, 0.9587"
+```
+
 ## Final notes
 
 Some comments about potential questions on your own projects (raised by QBarbier):
@@ -284,12 +309,36 @@ Some comments about potential questions on your own projects (raised by QBarbier
 Anything that would be relevant for a gating strategy should be used as an input. So usually any phenotypic channel would be included. If you know that you would not use certain parameters on subsequent experiments (for instance if the staining is intracellular and you plan to sort a live population and thus cannot permeabilize your cells), you should exclude the corresponding channels. I usually do not use channels that were used in pre-gating steps (e.g. CD45 for immune cells). Finally, if you plan to use flow cytometry and use hypergate on a CyTOF dataset, you probably want to discard the Cell_length channel.
 
 ### How big can the input matrix be?
-It depends on how much RAM your computer has. If that is an issue I suggest downsampling to (e.g.) 1000 positive cells and a corresponding number of negative cells. I cannot show an example in this vignette as the example dataset has to be kept small. The following code should however achieve this :
+It depends on how much RAM your computer has. If that is an issue I suggest downsampling to (e.g.) 1000 positive cells and a corresponding number of negative cells. The `hgate_sample` function can help you achieve this:
+
+
+```r
+set.seed(123)  ## Makes the subsampling reproducible
+gate_vector = Samusik_01_subset$labels
+subsample = hgate_sample(gate_vector = gate_vector, level = 5, 
+    size = 100)  ## Subsample 100 events from population #5 (Classical monocytes), and a corresponding number of negative events
+tab = table(ifelse(subsample, "In", "Out"), ifelse(Samusik_01_subset$labels == 
+    5, "Positive pop.", "Negative pop."))
+tab[1, ]/colSums(tab)  ## Fraction of subsampled events for positive and negative populations
+```
 
 ```
-subsample=rep(FALSE,nrow(xp)) ## Where xp is your input matrix
-positive_population=gate_vector==level ## Where gate_vector is the vector of clusters and level the population of interest)
-M=min(1000,sum(positive_population)) ## Number of positive events to downsample to
-subsample[positive_population][sample(1:sum(positive_population),M)]=TRUE
-subsample[!positive_population][sample(1:sum(!positive_population),round(M/sum(positive_population)*sum(!positive_population)))]=TRUE
+## Negative pop. Positive pop. 
+##     0.3204976     0.3205128
+```
+
+```r
+xp = Samusik_01_subset$xp_src[, Samusik_01_subset$regular_channels]
+hg = hypergate(xp = xp[subsample, ], gate_vector = gate_vector[subsample], 
+    level = 5)  ## Runs hypergate on a subsample of the input matrix
+gating_heldout = subset_matrix_hg(hg, xp[!subsample, ])  ## Applies the gate to the held-out data
+table(ifelse(gating_heldout, "Gated in", "Gated out"), ifelse(Samusik_01_subset$labels[!subsample] == 
+    5, "Positive pop.", "Negative pop."))
+```
+
+```
+##            
+##             Negative pop. Positive pop.
+##   Gated in             37           192
+##   Gated out          1110            20
 ```

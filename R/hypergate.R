@@ -104,9 +104,9 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
     active_parameters=gate$active_channels##apply(parameters,2,function(x){x[length(x)]!=x[1]})
     parameters=parameters[,active_parameters,drop=FALSE]
     if (nrow(parameters) > 1) {
-      parameters_order=
-        apply(parameters,2,function(x)min(which(x!=x[1])))
-      parameters=parameters[,order(parameters_order,decreasing=FALSE),drop=FALSE]
+        parameters_order=
+            apply(parameters,2,function(x)min(which(x!=x[1])))
+        parameters=parameters[,order(parameters_order,decreasing=FALSE),drop=FALSE]
     }
     parameters=setNames(parameters[nrow(parameters),,drop=TRUE],colnames(parameters))
     channels=sub("_max","",names(parameters))
@@ -226,7 +226,7 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
 #' @param beta Beta to weight purity (low beta) or yield (high beta) more,
 #'   needed for Fscore computation
 #' @return A data.frame with channel, sign, comp and threshold columns, and
-#'   optionnally Fscore1d and Fscore. Fscores are computed if xp, gate_vector
+#'   optionnally deltaF (score deterioration when parameter is ignored),Fscore1d (F_value when using only this parameter) and Fscore (F score when all parameters up to this one are included). Fscores are computed if xp, gate_vector
 #'   and level are passed to the function.
 #' @seealso \code{hg_pheno}, \code{hg_rule}
 #' @examples
@@ -240,58 +240,58 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
 #' @export
 
 hgate_info <- function(hgate, xp, gate_vector, level, beta = 1) {
-  miss = missing(xp) + missing(level) + missing(level)
-  if (miss == 1 || miss == 2) {
-    warning("at least one parameter is missing in order to compute scores.")
-  }
-  # retrieve threshold
-  pars = hgate$pars.history
-  active_pars = hgate$active_channels
-  pars = pars[, active_pars, drop = FALSE]
-  if (nrow(pars) > 1) {
-    pars_order = apply(pars, 2, function(x) min(which(x != x[1])))
-    pars = pars[, order(pars_order, decreasing = FALSE), drop = FALSE]
-  }
-  pars = setNames(pars[nrow(pars), , drop = TRUE], colnames(pars))
-  # get channel names
-  channels = sub("_max", "", names(pars))
-  channels = sub("_min", "", channels)
-  # phenotype sign
-  dir.sign = rep('+', length(pars))
-  dir.sign[grep("_max", names(pars))] = '-'
-  # comparison sign
-  dir.comp = rep(' >= ', length(pars))
-  dir.comp[grep("_max", names(pars))] = ' <= '
-  # all together
-  res = data.frame(
-    channels, sign = dir.sign, comp = dir.comp, threshold = pars
-  )
-  # scores
-  if (miss == 0) {
-    
-    w = !is.na(gate_vector)
-    xp = xp[w,,drop=F]
-    gate_vector = gate_vector[w]
-    truce = gate_vector==level
-    
-    ##Loop over parameters
-    active_events = rep(TRUE, nrow(xp))
-    Fscore = Fscore1D = c()
-    for(i in seq(length(pars))) {
-      # events for the current 1D gate
-      if(dir.comp[i] == ' >= '){
-        test1D = xp[,channels[i]] >= pars[i]
-      } else {
-        test1D = xp[,channels[i]] <= pars[i]
-      }
-      Fscore1D = c(Fscore1D, signif(F_beta(truce, test1D, beta = beta), 4))
-      # update active events
-      active_events = active_events & test1D
-      Fscore = c(Fscore, signif(F_beta(truce, active_events, beta = beta), 4))
+    miss = missing(xp) + missing(level) + missing(level)
+    if (miss == 1 || miss == 2) {
+        warning("at least one parameter is missing in order to compute scores.")
     }
-    res = cbind(res, Fscore1D, Fscore)
-  }
-  res
+                                        # retrieve threshold
+    pars = hgate$pars.history
+    active_pars = hgate$active_channels
+    pars = pars[, active_pars, drop = FALSE]
+    if (nrow(pars) > 1) {
+        pars_order = apply(pars, 2, function(x) min(which(x != x[1])))
+        pars = pars[, order(pars_order, decreasing = FALSE), drop = FALSE]
+    }
+    pars = setNames(pars[nrow(pars), , drop = TRUE], colnames(pars))
+                                        # get channel names
+    channels = sub("_max", "", names(pars))
+    channels = sub("_min", "", channels)
+                                        # phenotype sign
+    dir.sign = rep('+', length(pars))
+    dir.sign[grep("_max", names(pars))] = '-'
+                                        # comparison sign
+    dir.comp = rep(' >= ', length(pars))
+    dir.comp[grep("_max", names(pars))] = ' <= '
+                                        # all together
+    res = data.frame(
+        channels, sign = dir.sign, comp = dir.comp, threshold = pars
+    )
+                                        # scores
+    if (miss == 0) {
+        
+        w = !is.na(gate_vector)
+        xp = xp[w,,drop=F]
+        gate_vector = gate_vector[w]
+        truce = gate_vector==level
+        
+        ##Loop over parameters
+        active_events = rep(TRUE, nrow(xp))
+        Fscore = Fscore1D = c()
+        for(i in seq(length(pars))) {
+                                        # events for the current 1D gate
+            if(dir.comp[i] == ' >= '){
+                test1D = xp[,channels[i]] >= pars[i]
+            } else {
+                test1D = xp[,channels[i]] <= pars[i]
+            }
+            Fscore1D = c(Fscore1D, signif(F_beta(truce, test1D, beta = beta), 4))
+                                        # update active events
+            active_events = active_events & test1D
+            Fscore = c(Fscore, signif(F_beta(truce, active_events, beta = beta), 4))
+        }
+        res = cbind(res, deltaF=channels_contributions(hgate, xp, gate_vector, level, beta),Fscore1D, Fscore)
+    }
+    res
 }
 
 #' @title hgate_pheno
@@ -306,7 +306,7 @@ hgate_info <- function(hgate, xp, gate_vector, level, beta = 1) {
 #' @export
 
 hgate_pheno <- function(hgate, collapse = ", ") {
-  with(hgate_info(hgate), paste0(channels, sign, collapse = collapse))
+    with(hgate_info(hgate), paste0(channels, sign, collapse = collapse))
 }
 
 #' @title hgate_rule
@@ -322,7 +322,7 @@ hgate_pheno <- function(hgate, collapse = ", ") {
 #' @export
 
 hgate_rule <- function(hgate, collapse = ", ", digits = 2) {
-  with(hgate_info(hgate), paste0(channels, comp, round(threshold, digits), collapse = collapse))
+    with(hgate_info(hgate), paste0(channels, comp, round(threshold, digits), collapse = collapse))
 }
 
 #' @title hgate_sample
@@ -401,54 +401,54 @@ hgate_rule <- function(hgate, collapse = ", ", digits = 2) {
 #' @export
 
 hgate_sample <- function(gate_vector, level, size = 1000, method = "prop") {
-  ## Where gate_vector is the vector of clusters and level the population of interest)
-  subsample <- rep(FALSE, length(gate_vector))
-  # multi-class methods
-  if (method == "ceil") {
-    if (!missing(level))
-      warning(sprintf("level is ignored when method is %s", method))
-    for (level in unique(gate_vector)) {
-      if (is.na(level)) next()
-      nna_pop <- !is.na(gate_vector)
-      pos_pop <- nna_pop & (gate_vector==level)
-      sum_pos <- sum(pos_pop, na.rm = TRUE)
-      if (sum_pos <= size) {
-        subsample[pos_pop] = TRUE
-      } else {
-        subsample[pos_pop][sample.int(sum_pos, size)] = TRUE
-      }
+    ## Where gate_vector is the vector of clusters and level the population of interest)
+    subsample <- rep(FALSE, length(gate_vector))
+                                        # multi-class methods
+    if (method == "ceil") {
+        if (!missing(level))
+            warning(sprintf("level is ignored when method is %s", method))
+        for (level in unique(gate_vector)) {
+            if (is.na(level)) next()
+            nna_pop <- !is.na(gate_vector)
+            pos_pop <- nna_pop & (gate_vector==level)
+            sum_pos <- sum(pos_pop, na.rm = TRUE)
+            if (sum_pos <= size) {
+                subsample[pos_pop] = TRUE
+            } else {
+                subsample[pos_pop][sample.int(sum_pos, size)] = TRUE
+            }
+        }
+        return(subsample)
     }
-    return(subsample)
-  }
-  # pos vs neg methods
-  nna_pop <- !is.na(gate_vector)
-  pos_pop <- nna_pop & (gate_vector==level)
-  sum_pos <- sum(pos_pop)
-  # downsample positive population
-  if (sum_pos <= size) {
-    subsample[pos_pop] = TRUE
-    pos_size = sum_pos
-  } else {
-    subsample[pos_pop][sample.int(sum_pos, size)] = TRUE
-    pos_size = size
-  }
-  # downsample positive population
-  sum_neg <- sum(nna_pop) - sum_pos
-  if (method == "prop") {
-    neg_size = round(pos_size / sum_pos * sum_neg)
-  } else if (method == "10x") {
-    neg_size = 10 * pos_size
-  } else {
-    stop(sprintf("method \"\" is not implemented.", method))
-  }
-  neg_pop <- nna_pop & (gate_vector!=level)
-  if (neg_size < sum_neg) {
-    idx <- sample.int(sum_neg, neg_size)
-    subsample[neg_pop][idx] <- TRUE
-  } else {
-    subsample[neg_pop] <- TRUE
-  }
-  subsample
+                                        # pos vs neg methods
+    nna_pop <- !is.na(gate_vector)
+    pos_pop <- nna_pop & (gate_vector==level)
+    sum_pos <- sum(pos_pop)
+                                        # downsample positive population
+    if (sum_pos <= size) {
+        subsample[pos_pop] = TRUE
+        pos_size = sum_pos
+    } else {
+        subsample[pos_pop][sample.int(sum_pos, size)] = TRUE
+        pos_size = size
+    }
+                                        # downsample positive population
+    sum_neg <- sum(nna_pop) - sum_pos
+    if (method == "prop") {
+        neg_size = round(pos_size / sum_pos * sum_neg)
+    } else if (method == "10x") {
+        neg_size = 10 * pos_size
+    } else {
+        stop(sprintf("method \"\" is not implemented.", method))
+    }
+    neg_pop <- nna_pop & (gate_vector!=level)
+    if (neg_size < sum_neg) {
+        idx <- sample.int(sum_neg, neg_size)
+        subsample[neg_pop][idx] <- TRUE
+    } else {
+        subsample[neg_pop] <- TRUE
+    }
+    subsample
 }
 
 #' @title subset_matrix_hg
@@ -466,21 +466,21 @@ hgate_sample <- function(gate_vector, level, size = 1000, method = "prop") {
 #' table(gating_state,target)
 #' @export
 subset_matrix_hg<-function(gate,xp){
-		if(length(gate$active_channels)>0){
-		state=rep(TRUE,nrow(xp))
-		pars=tail(gate$pars.history,1)[1,]
-		for(chan in gate$active_channels){
-			chan_real=substr(chan,1,nchar(chan)-4)
-			if(substr(chan,nchar(chan)-3,nchar(chan))=="_min"){
-				state[state][xp[state,chan_real]<pars[chan]]=FALSE
-			} else {
-				state[state][xp[state,chan_real]>pars[chan]]=FALSE
-			}        
-		}
-		return(state)
-	} else {
-		return(rep(TRUE,nrow(xp)))
-	}
+    if(length(gate$active_channels)>0){
+        state=rep(TRUE,nrow(xp))
+        pars=tail(gate$pars.history,1)[1,]
+        for(chan in gate$active_channels){
+            chan_real=substr(chan,1,nchar(chan)-4)
+            if(substr(chan,nchar(chan)-3,nchar(chan))=="_min"){
+                state[state][xp[state,chan_real]<pars[chan]]=FALSE
+            } else {
+                state[state][xp[state,chan_real]>pars[chan]]=FALSE
+            }        
+        }
+        return(state)
+    } else {
+        return(rep(TRUE,nrow(xp)))
+    }
 }
 
 #' @title contract
@@ -988,14 +988,14 @@ hypergate<-function(xp,gate_vector,level,delta_add=0,beta=1,verbose=FALSE){
                 rm(current_cycle)
             }
         }
-                
+        
         if(cycle$f_current==f_previous){
             if(verbose){
                 print("Found no channel to add. Exiting")
             }
             break
         }
-            
+        
         sapply(ls(envir=cycle),function(x){
             assign(x,envir=hg.env,value=get(x,envir=cycle))
         })
@@ -1134,7 +1134,7 @@ reoptimize_strategy<-function(gate,channels_subset,xp,gate_vector,level,beta=1,v
     xp_pos=xp[truce,,drop=FALSE] ##xp for positive elements
     b_pos=b_src[truce,,drop=FALSE]
     state_pos=rowSums(b_pos)==ncol(b_pos)
-        
+    
     xp_neg=xp[!truce,,drop=FALSE] ##xp for negative elements
     b_neg=b_src[!truce,,drop=FALSE]
     state_neg=rowSums(b_neg)==ncol(b_neg)
@@ -1291,66 +1291,66 @@ F_beta=function(pred,truth,beta=1){
 
 gate_from_biplot<-function(matrix,x_axis,y_axis,...,bty="l",pch=16,cex=0.5,sample=NULL)
 {
-  xp=matrix[,c(x_axis,y_axis)]
-  if(!is.null(sample)){
-    s=sort(sample(1:nrow(xp),sample))
-  } else {
-    s=1:nrow(xp)
-  }
-
-  gate_updated=rep(0,nrow(xp))
-  color_biplot_by_discrete(xp[s,],gate_updated[s],bty=bty,pch=pch,cex=cex,...)
-
-  input.message=" n : new gate, c : redo last, s : stop gating. "
-  cat("\nPlease use the mouse pointer to draw")
-  polygons=list()
-  i=0
-  u="n"
-  while(u!="s"){
-    if(!u%in%c("n","s","c")){
-      u=readline(paste("Incorrect input.",input.message,sep=""))
+    xp=matrix[,c(x_axis,y_axis)]
+    if(!is.null(sample)){
+        s=sort(sample(1:nrow(xp),sample))
+    } else {
+        s=1:nrow(xp)
     }
-    if(u=="n"){
-      gate=gate_updated
-      i=i+1
-      col=setNames(c("black",rainbow(i)),0:i)
 
-      new.pol=en.locator()
+    gate_updated=rep(0,nrow(xp))
+    color_biplot_by_discrete(xp[s,],gate_updated[s],bty=bty,pch=pch,cex=cex,...)
 
-      new.pol=polygon.clean(new.pol)
-      polygons=c(polygons,list(new.pol))
-      gate_updated=update_gate(xp,polygons[[i]],gate,i)
+    input.message=" n : new gate, c : redo last, s : stop gating. "
+    cat("\nPlease use the mouse pointer to draw")
+    polygons=list()
+    i=0
+    u="n"
+    while(u!="s"){
+        if(!u%in%c("n","s","c")){
+            u=readline(paste("Incorrect input.",input.message,sep=""))
+        }
+        if(u=="n"){
+            gate=gate_updated
+            i=i+1
+            col=setNames(c("black",rainbow(i)),0:i)
 
-      color_biplot_by_discrete(xp[s,],gate_updated[s],bty=bty,pch=pch,cex=cex,colors=col,...)
+            new.pol=en.locator()
 
+            new.pol=polygon.clean(new.pol)
+            polygons=c(polygons,list(new.pol))
+            gate_updated=update_gate(xp,polygons[[i]],gate,i)
+
+            color_biplot_by_discrete(xp[s,],gate_updated[s],bty=bty,pch=pch,cex=cex,colors=col,...)
+
+        }
+        if(u=="c"){
+            gate_updated=gate
+            color_biplot_by_discrete(xp[s,],gate_updated[s],bty=bty,pch=pch,cex=cex,colors=col,...)
+            new.pol=en.locator()
+            new.pol=polygon.clean(new.pol)
+            polygons[[i]]=new.pol
+            gate_updated=update_gate(xp,polygons[[i]],gate_updated,i)
+            color_biplot_by_discrete(xp[s,],gate_updated[s],bty=bty,pch=pch,cex=cex,colors=col,...)
+        }
+        u=readline(paste("Input ?",input.message,"\n",sep=""))
     }
-    if(u=="c"){
-      gate_updated=gate
-      color_biplot_by_discrete(xp[s,],gate_updated[s],bty=bty,pch=pch,cex=cex,colors=col,...)
-      new.pol=en.locator()
-      new.pol=polygon.clean(new.pol)
-      polygons[[i]]=new.pol
-      gate_updated=update_gate(xp,polygons[[i]],gate_updated,i)
-      color_biplot_by_discrete(xp[s,],gate_updated[s],bty=bty,pch=pch,cex=cex,colors=col,...)
+    
+    if(requireNamespace("rgeos",quietly=TRUE)&requireNamespace("sp",quietly=TRUE)){
+        sapply(1:length(polygons),function(i,polygons){
+            poly=polygons[[i]]
+            coords = cbind(poly$x, poly$y)
+            coords=rbind(coords,coords[1,])
+            s = sp::SpatialLines(list(sp::Lines(list(sp::Line(coords)),ID=1)))
+            text(sp::coordinates(rgeos::gCentroid(s))[,1],sp::coordinates(rgeos::gCentroid(s))[,2],labels=as.character(i),xpd=T,font=2)
+        },polygons=polygons)
     }
-    u=readline(paste("Input ?",input.message,"\n",sep=""))
-  }
-  
-  if(requireNamespace("rgeos",quietly=TRUE)&requireNamespace("sp",quietly=TRUE)){
-      sapply(1:length(polygons),function(i,polygons){
-          poly=polygons[[i]]
-          coords = cbind(poly$x, poly$y)
-          coords=rbind(coords,coords[1,])
-          s = sp::SpatialLines(list(sp::Lines(list(sp::Line(coords)),ID=1)))
-          text(sp::coordinates(rgeos::gCentroid(s))[,1],sp::coordinates(rgeos::gCentroid(s))[,2],labels=as.character(i),xpd=T,font=2)
-      },polygons=polygons)
-  }
-  gate=gate_updated
+    gate=gate_updated
 
-  gate[gate==0]=NA
-  gate[apply(xp,1,function(x)any(is.na(x)))]=NA
+    gate[gate==0]=NA
+    gate[apply(xp,1,function(x)any(is.na(x)))]=NA
 
-  setNames(gate,rownames(matrix))
+    setNames(gate,rownames(matrix))
 }
 
 #' Colors a biplot according to a vector with discrete values
@@ -1378,20 +1378,20 @@ color_biplot_by_discrete<-function(matrix,discrete_vector,...,bty="l",pch=16,cex
 
 #' Wrapper to locator that plots segments on the fly
 en.locator<-function(){
-  input=TRUE
-  x=vector()
-  y=vector()
-  while(!is.null(input)){
-    input=locator(1)
-    x=c(x,input$x)
-    y=c(y,input$y)
+    input=TRUE
+    x=vector()
+    y=vector()
+    while(!is.null(input)){
+        input=locator(1)
+        x=c(x,input$x)
+        y=c(y,input$y)
 
-    if(length(x)>1){
-      segments(x0=x[length(x)-1],x1=x[length(x)],y0=y[length(y)-1],y1=y[length(y)],lty=2)
+        if(length(x)>1){
+            segments(x0=x[length(x)-1],x1=x[length(x)],y0=y[length(y)-1],y1=y[length(y)],lty=2)
+        }
     }
-  }
-  segments(x0=x[1],x1=x[length(x)],y0=y[1],y1=y[length(y)],lty=2)
-  list(x=x,y=y)
+    segments(x0=x[1],x1=x[length(x)],y0=y[1],y1=y[length(y)],lty=2)
+    list(x=x,y=y)
 }
 
 #' Remove self intersection in polygons
@@ -1423,7 +1423,7 @@ update_gate=function(xp,polygon,gate_vector=rep(0,nrow(xp)),value=1){
     if(requireNamespace("sp",quietly=FALSE)){
         gate_vector[sp::point.in.polygon(xp[,1],xp[,2],polygon$x,polygon$y)!=0]=value
     }
-  gate_vector
+    gate_vector
 }
 
 #' 2000 events randomly sampled from the 'Samusik_01' dataset
