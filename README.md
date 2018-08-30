@@ -139,8 +139,8 @@ table(ifelse(gating_predicted, "Gated-in", "Gated-out"), ifelse(gate_vector ==
 
 |          | Events of interest| Others|
 |:---------|------------------:|------:|
-|Gated-in  |                116|      0|
 |Gated-out |                 10|   1874|
+|Gated-in  |                116|      0|
 
 Another option, which offers more low-level control, is to examine for each datapoint whether they pass the threshold for each parameter. The function to obtain such a boolean matrix is ```boolmat```. Here our gating strategy specifies *SiglecF+cKit-Ly6C-*. We would thus obtain a 3-columns x 2000 (the number of events) rows
 
