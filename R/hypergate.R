@@ -223,7 +223,7 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
 #'   originates, needed for Fscore computation
 #' @param level Level of gate_vector identifying the population of interest,
 #'   needed for Fscore computation
-#' @param beta Beta to weight precision (low beta) or recall (high beta) more,
+#' @param beta Beta to weight purity (low beta) or yield (high beta) more,
 #'   needed for Fscore computation
 #' @return A data.frame with channel, sign, comp and threshold columns, and
 #'   optionnally Fscore1d and Fscore. Fscores are computed if xp, gate_vector
