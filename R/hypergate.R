@@ -1347,7 +1347,7 @@ gate_from_biplot<-function(matrix,x_axis,y_axis,...,bty="l",pch=16,cex=0.5,sampl
     }
     gate=gate_updated
 
-    gate[gate==0]=NA
+    ## gate[gate==0]=NA
     gate[apply(xp,1,function(x)any(is.na(x)))]=NA
 
     setNames(gate,rownames(matrix))
