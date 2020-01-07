@@ -4,8 +4,8 @@
 \alias{plot_gating_strategy}
 \title{plot_gating_strategy}
 \usage{
-plot_gating_strategy(gate, xp, gate_vector, level, highlight = "black",
-  path = "./", ...)
+plot_gating_strategy(gate, xp, gate_vector, level, cex = 0.5,
+  highlight = "black", path = "./", ...)
 }
 \arguments{
 \item{gate}{A hypergate object (produced by hypergate())}
@@ -15,6 +15,8 @@ plot_gating_strategy(gate, xp, gate_vector, level, highlight = "black",
 \item{gate_vector}{Categorical data from which the 'gate' parameter originates}
 
 \item{level}{Level of gate_vector identifying the population of interest}
+
+\item{cex}{size of dots}
 
 \item{highlight}{color of the positive population when plotting}
 

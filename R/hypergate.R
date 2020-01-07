@@ -81,6 +81,7 @@ fill_FNTN_matrix<-function(xp_FN,xp_TN,B_FN,B_TN,par){
 #' @param level Level of gate_vector identifying the population of interest
 #' @param highlight color of the positive population when plotting
 #' @param path Where png files will be produced
+#' @param cex size of dots
 #' @param ... passed to png
 #' @examples
 #' data(Samusik_01_subset)
@@ -91,7 +92,7 @@ fill_FNTN_matrix<-function(xp_FN,xp_TN,B_FN,B_TN,par){
 #' plot_gating_strategy(gate=hg,xp=xp,gate_vector=gate_vector,level=23,highlight="red")
 #' @export
 
-plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path="./",...){
+plot_gating_strategy<-function(gate,xp,gate_vector,level,cex=0.5,highlight="black",path="./",...){
     if(missing(path)){
         warning("path argument is missing, output won't be saved to file")
     }
@@ -145,7 +146,7 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
                 ylim=ranges.global[,chan2],
                 bty="l",
                 pch=16,
-                cex=0.1,
+                cex=cex,
                 col=cols[active_events]
             )
             segments(
@@ -193,7 +194,7 @@ plot_gating_strategy<-function(gate,xp,gate_vector,level,highlight="black",path=
              ylim=ranges.global[,chan1],
              bty="l",
              pch=16,
-             cex=0.1,
+             cex=cex,
              col=cols[active_events]
              )
         abline(h=parameters[i],col="red")

@@ -1,6 +1,6 @@
 Package: hypergate
 Title: Machine Learning of Hyperrectangular Gating Strategies for High-Dimensional Cytometry
-Version: 0.8.1
+Version: 0.8.2
 Authors@R: c(
                person("Etienne","Becht",middle=NULL,email="etienne.becht@protonmail.com",role=c("cre","aut")),
                person("Samuel","Granjeaud",middle=NULL,email="samuel.granjeaud@inserm.fr",role=c("ctb"))
@@ -21,4 +21,4 @@ Suggests: knitr,
 	  sp,
 	  rgeos
 VignetteBuilder: knitr
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
