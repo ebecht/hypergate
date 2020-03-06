@@ -39,7 +39,7 @@ This loads 2000 datapoints randomly sampled from the *Samusik_01* dataset (avail
 
 2. *xp_src* a matrix corresponding to the expression of the data subset. Rownames correspond to event numbers in the unsampled dataset. Colnames correspond to protein targets (or other information e.g. events' manually-annotated labels)
 
-3. *labels* numeric vector encoding manually-annontated labels, with the value -1 for ungated events. The text labels for the gated populations are availble from FlowRepostiry
+3. *labels* numeric vector encoding manually-annotated labels, with the value -1 for ungated events. The text labels for the gated populations are available from FlowRepostiry
 
 4. *regular_channels* A subset of colnames(Samusik_01_subset$xp_src) that corresponds to protein targets
 
