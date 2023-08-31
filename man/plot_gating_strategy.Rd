@@ -4,8 +4,16 @@
 \alias{plot_gating_strategy}
 \title{plot_gating_strategy}
 \usage{
-plot_gating_strategy(gate, xp, gate_vector, level, cex = 0.5,
-  highlight = "black", path = "./", ...)
+plot_gating_strategy(
+  gate,
+  xp,
+  gate_vector,
+  level,
+  cex = 0.5,
+  highlight = "black",
+  path = "./",
+  ...
+)
 }
 \arguments{
 \item{gate}{A hypergate object (produced by hypergate())}

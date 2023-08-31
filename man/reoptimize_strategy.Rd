@@ -4,8 +4,15 @@
 \alias{reoptimize_strategy}
 \title{reoptimize_strategy}
 \usage{
-reoptimize_strategy(gate, channels_subset, xp, gate_vector, level,
-  beta = 1, verbose = FALSE)
+reoptimize_strategy(
+  gate,
+  channels_subset,
+  xp,
+  gate_vector,
+  level,
+  beta = 1,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{gate}{A return from hypergate}

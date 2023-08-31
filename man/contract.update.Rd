@@ -4,12 +4,20 @@
 \alias{contract.update}
 \title{contract.update}
 \usage{
-contract.update(contract_object, pars = envir$pars,
-  active_channels = envir$active_channels, b_pos = envir$b_pos,
-  b_neg = envir$b_neg, state_pos = envir$state_pos,
-  state_neg = envir$state_neg, TN = envir$TN, TP = envir$TP,
-  xp_pos = envir$xp_pos, xp_neg = envir$xp_neg,
-  envir = parent.frame())
+contract.update(
+  contract_object,
+  pars = envir$pars,
+  active_channels = envir$active_channels,
+  b_pos = envir$b_pos,
+  b_neg = envir$b_neg,
+  state_pos = envir$state_pos,
+  state_neg = envir$state_neg,
+  TN = envir$TN,
+  TP = envir$TP,
+  xp_pos = envir$xp_pos,
+  xp_neg = envir$xp_neg,
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{contract_object}{output of the contract function}

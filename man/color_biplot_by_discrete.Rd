@@ -4,8 +4,15 @@
 \alias{color_biplot_by_discrete}
 \title{Colors a biplot according to a vector with discrete values}
 \usage{
-color_biplot_by_discrete(matrix, discrete_vector, ..., bty = "l",
-  pch = 16, cex = 0.5, colors = NULL)
+color_biplot_by_discrete(
+  matrix,
+  discrete_vector,
+  ...,
+  bty = "l",
+  pch = 16,
+  cex = 0.5,
+  colors = NULL
+)
 }
 \arguments{
 \item{matrix}{a two columns matrix}

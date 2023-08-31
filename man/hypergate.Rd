@@ -4,8 +4,7 @@
 \alias{hypergate}
 \title{hypergate}
 \usage{
-hypergate(xp, gate_vector, level, delta_add = 0, beta = 1,
-  verbose = FALSE)
+hypergate(xp, gate_vector, level, delta_add = 0, beta = 1, verbose = FALSE)
 }
 \arguments{
 \item{xp}{an Expression matrix}

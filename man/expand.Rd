@@ -4,9 +4,15 @@
 \alias{expand}
 \title{expand}
 \usage{
-expand(FN = envir$FN, FNTN_matrix = envir$FNTN_matrix, TP = envir$TP,
-  TN = envir$TN, n = envir$n, beta = envir$beta2,
-  envir = parent.frame())
+expand(
+  FN = envir$FN,
+  FNTN_matrix = envir$FNTN_matrix,
+  TP = envir$TP,
+  TN = envir$TN,
+  n = envir$n,
+  beta = envir$beta2,
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{FN}{integer: current number of FP}

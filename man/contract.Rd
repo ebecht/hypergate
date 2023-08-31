@@ -4,10 +4,18 @@
 \alias{contract}
 \title{contract}
 \usage{
-contract(par = par, xp_pos = envir$xp_pos,
-  state_pos = envir$state_pos, xp_neg = envir$xp_neg,
-  state_neg = envir$state_neg, n = envir$n, TP = envir$TP,
-  TN = envir$TN, beta = envir$beta2, envir = parent.frame())
+contract(
+  par = par,
+  xp_pos = envir$xp_pos,
+  state_pos = envir$state_pos,
+  xp_neg = envir$xp_neg,
+  state_neg = envir$state_neg,
+  n = envir$n,
+  TP = envir$TP,
+  TN = envir$TN,
+  beta = envir$beta2,
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{par}{Current parametrization of the hyperrectangle}

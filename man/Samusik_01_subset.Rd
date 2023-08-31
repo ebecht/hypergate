@@ -4,9 +4,11 @@
 \name{Samusik_01_subset}
 \alias{Samusik_01_subset}
 \title{2000 events randomly sampled from the 'Samusik_01' dataset}
-\format{list with three elements: xp_src (expression matrix), labels (manual gates of the events) and tsne (a tSNE projection of the dataset)}
+\format{
+list with four elements: fs_src (a flowSet), xp_src (its expression matrix), labels (manual gates of the events) and tsne (a tSNE projection of the dataset)
+}
 \usage{
-data(Samusik_01_subset)
+Samusik_01_subset
 }
 \description{
 2000 events randomly sampled from the 'Samusik_01' dataset

@@ -4,8 +4,16 @@
 \alias{gate_from_biplot}
 \title{gate_from_biplot}
 \usage{
-gate_from_biplot(matrix, x_axis, y_axis, ..., bty = "l", pch = 16,
-  cex = 0.5, sample = NULL)
+gate_from_biplot(
+  matrix,
+  x_axis,
+  y_axis,
+  ...,
+  bty = "l",
+  pch = 16,
+  cex = 0.5,
+  sample = NULL
+)
 }
 \arguments{
 \item{matrix}{A matrix}

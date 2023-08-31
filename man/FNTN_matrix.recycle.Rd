@@ -4,8 +4,16 @@
 \alias{FNTN_matrix.recycle}
 \title{FNTN_matrix.recycle}
 \usage{
-FNTN_matrix.recycle(FNTN_matrix, B_FN_old, B_TN_old, B_FN_new, B_TN_new,
-  xp_FN, xp_TN, par)
+FNTN_matrix.recycle(
+  FNTN_matrix,
+  B_FN_old,
+  B_TN_old,
+  B_FN_new,
+  B_TN_new,
+  xp_FN,
+  xp_TN,
+  par
+)
 }
 \arguments{
 \item{FNTN_matrix}{Expansion matrix to recycle}
