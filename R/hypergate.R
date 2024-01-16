@@ -1337,18 +1337,8 @@ gate_from_biplot<-function(matrix,x_axis,y_axis,...,bty="l",pch=16,cex=0.5,sampl
         u=readline(paste("Input ?",input.message,"\n",sep=""))
     }
     
-    if(requireNamespace("rgeos",quietly=TRUE)&requireNamespace("sp",quietly=TRUE)){
-        sapply(1:length(polygons),function(i,polygons){
-            poly=polygons[[i]]
-            coords = cbind(poly$x, poly$y)
-            coords=rbind(coords,coords[1,])
-            s = sp::SpatialLines(list(sp::Lines(list(sp::Line(coords)),ID=1)))
-            text(sp::coordinates(rgeos::gCentroid(s))[,1],sp::coordinates(rgeos::gCentroid(s))[,2],labels=as.character(i),xpd=T,font=2)
-        },polygons=polygons)
-    }
     gate=gate_updated
 
-    ## gate[gate==0]=NA
     gate[apply(xp,1,function(x)any(is.na(x)))]=NA
 
     setNames(gate,rownames(matrix))
@@ -1400,14 +1390,35 @@ en.locator<-function(){
 #' @return A polygon without overlapping edges and new vertices corresponding to non-inner points of intersection
 
 polygon.clean<-function(poly){
-    if(requireNamespace("rgeos",quietly=TRUE)&requireNamespace("sp",quietly=TRUE)){
-        coords=cbind(poly$x,poly$y)
-        coords=rbind(coords,coords[1,])
-        s = sp::SpatialLines(list(sp::Lines(list(sp::Line(coords)),ID=1)))
-        s_outer = rgeos::gUnaryUnion(rgeos::gPolygonize(rgeos::gNode(s)))
-        x=s_outer@polygons[[1]]@Polygons[[1]]@coords[,"x"]
-        y=s_outer@polygons[[1]]@Polygons[[1]]@coords[,"y"]
-        return(list(x=x[-length(x)],y=y[-length(y)]))
+    if(requireNamespace("sf", quietly = TRUE)) {
+        ## Create a data frame from the input coordinates
+        coords_df = data.frame(x = poly$x, y = poly$y)
+
+        ## Close polygon
+        coords_df = rbind(coords_df, coords_df[1, ])
+        
+        ## Convert to an sf object
+        coords_sf = sf::st_as_sf(coords_df, coords = c("x", "y"))
+        
+        ## Convert points to line
+        line = sf::st_cast(sf::st_combine(coords_sf), "MULTILINESTRING")
+        line = sf::st_node(line)
+        
+        ## Convert line to polygon
+        polygon = sf::st_polygonize(line)
+
+        ## Simplify and clean the polygon
+        ## Note: st_union is used here for a cleaning effect similar to gUnaryUnion
+        cleaned_polygon = sf::st_union(polygon, by_feature = TRUE)
+
+        ## Extract coordinates
+        coords = sf::st_coordinates(sf::st_cast(cleaned_polygon, "POLYGON"))
+        x = coords[, 1]
+        y = coords[, 2]
+
+        ## Return the cleaned coordinates
+        return(list(x = x, y = y))
+
     } else {
         return(poly)
     }
